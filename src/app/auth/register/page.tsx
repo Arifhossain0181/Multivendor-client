@@ -2,40 +2,47 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { useLogin } from '@/src/hooks/useAuth';
+import { useRegister } from '@/src/hooks/useAuth';
 import * as z from 'zod';
 
-const loginSchema = z.object({
-  email: z.string().min(1, 'Email required').email('Email not valid'),
-  password: z.string().min(6, 'Password required').max(100, 'Password too long'),
+const registerSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().min(1, 'Email is required').email('Email is not valid'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-type LoginFormData = z.infer<typeof loginSchema>;
+type RegisterFormData = z.infer<typeof registerSchema>;
 
-export default function LoginPage() {
-  const { mutate: login, isPending } = useLogin();
+export default function RegisterPage() {
+  const { mutate: registerUser, isPending } = useRegister();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
+      name: '',
       email: '',
       password: '',
     },
   });
 
-  const onSubmit = (data: LoginFormData) => {
-    login(data);
+  const onSubmit = (data: RegisterFormData) => {
+    registerUser(data);
   };
 
   return (
     <div style={{ padding: '40px' }}>
-      <h1>Enterprise Login Logic</h1>
+      <h1>Register</h1>
 
       <form onSubmit={handleSubmit(onSubmit)}>
+        <div>
+          <input type="text" placeholder="Name" {...register('name')} />
+          {errors.name && <p style={{ color: 'red' }}>{errors.name.message}</p>}
+        </div>
+
         <div>
           <input type="email" placeholder="Email Address" {...register('email')} />
           {errors.email && <p style={{ color: 'red' }}>{errors.email.message}</p>}
@@ -47,7 +54,7 @@ export default function LoginPage() {
         </div>
 
         <button type="submit" disabled={isPending}>
-          {isPending ? 'Authenticating...' : 'Sign In'}
+          {isPending ? 'Creating account...' : 'Sign Up'}
         </button>
       </form>
     </div>

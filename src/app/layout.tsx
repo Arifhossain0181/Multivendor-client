@@ -2,6 +2,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import QueryProvider from  "../providers/Provider"
+import { Geist } from "next/font/google";
+import { cn } from "@/src/libs/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata:Metadata={
   title: 'Multivendor E-commerce',
@@ -17,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={cn("font-sans", geist.variable)}>
       <body>
         <QueryProvider>
           {children}
