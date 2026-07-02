@@ -12,5 +12,6 @@ export default function CartPage() {
     // checkout button click handler submit logic
     const onCheckoutClick = () => {
         handleCheckout.mutate({
-    }
+        });
+    };
 }

@@ -1,13 +1,25 @@
-import { Footer7 } from "../components/footer7";
-import { Navbar5 } from "../components/navbar5"
+import type { Metadata } from "next";
+import { AppProviders } from "../providers/AppProviders";
+import "./globals.css";
 
-export default function Home() {
+export const metadata: Metadata = {
+  title: "My Marketplace",
+  description: "Multi-vendor marketplace",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <div>
-      <Navbar5></Navbar5>
-      <h1>Welcome to My Website</h1>
-      <Footer7></Footer7>
-      
-    </div>
+    
+    <html lang="en" suppressHydrationWarning>
+      <body>
+        <AppProviders>
+          {children}
+        </AppProviders>
+      </body>
+    </html>
   );
 }
