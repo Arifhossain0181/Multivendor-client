@@ -2,7 +2,7 @@ import { LoaderIcon } from "lucide-react"
 
 import { cn } from "../libs/utils"
 
-function Spinner({ className, ...props }: React.ComponentProps<"svg">) {
+export default function Spinner({ className, ...props }: React.ComponentProps<"svg">) {
   return (
     <LoaderIcon
       role="status"
