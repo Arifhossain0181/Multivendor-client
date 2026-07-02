@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client"; // form এ হুক ব্যবহার হচ্ছে, তাই client component
+"use client";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,10 +14,15 @@ import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { Button } from "../../../components/ui/button";
 
-
 const loginSchema = z.object({
-  email: z.string().min(1, "Email is required").email("Please enter a valid email"),
-  password: z.string().min(1, "Password is required").min(6, "Password must be at least 6 characters"),
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Please enter a valid email"),
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .min(6, "Password must be at least 6 characters"),
 });
 type LoginInput = z.infer<typeof loginSchema>;
 
@@ -44,11 +49,13 @@ export default function LoginPage() {
 
       if (user.role === "ADMIN") router.push("/admin");
       else if (user.role === "SELLER") router.push("/seller");
-      else router.push("/products");
+      else router.push("/");
     },
 
     onError: (error: any) => {
-      toast.error(error.message || "Login failed, please check your credentials");
+      toast.error(
+        error.message || "Login failed, please check your credentials",
+      );
     },
   });
 
@@ -90,7 +97,7 @@ export default function LoginPage() {
           <Input
             id="password"
             type="password"
-            placeholder="••••••••"
+            placeholder="Password"
             autoComplete="current-password"
             aria-invalid={!!errors.password}
             {...register("password")}
@@ -105,7 +112,7 @@ export default function LoginPage() {
         </Button>
 
         <p className="text-center text-sm text-gray-500">
-          Account ?{" "}
+          Dont have an account ?{" "}
           <Link href="/register" className="text-blue-600 hover:underline">
             create new account
           </Link>

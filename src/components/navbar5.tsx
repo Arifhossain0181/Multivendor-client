@@ -1,6 +1,11 @@
 "use client";
 
-import { MenuIcon } from "lucide-react";
+/* eslint-disable @next/next/no-img-element */
+
+import { MenuIcon, Moon, Sun } from "lucide-react";
+import Link from "next/link";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
 import {
   Accordion,
@@ -26,12 +31,58 @@ import {
   SheetTrigger,
 } from "@/src/components/ui/sheet";
 import { cn } from "@/src/libs/utils";
+import { useTheme } from "next-themes";
+import { useMe } from "@/src/features/auth/loginsstanstack/useMe";
+import { authService, type User } from "@/src/services/auth.service";
 
 interface Navbar5Props {
   className?: string;
 }
 
+export function ModeToggle() {
+  const { theme, setTheme } = useTheme();
+
+  return (
+    <Button
+      variant="outline"
+      size="icon"
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+    >
+      {theme === "dark" ? (
+        <Sun className="h-5 w-5" />
+      ) : (
+        <Moon className="h-5 w-5" />
+      )}
+    </Button>
+  );
+}
+
+function UserInfo({ user }: { user: User }) {
+  return (
+    <div className="rounded-xl border border-border bg-background px-4 py-2 text-sm shadow-sm">
+      <p className="font-medium text-foreground">{user.name}</p>
+      <p className="text-muted-foreground">{user.email}</p>
+      <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+        {user.role}
+      </p>
+    </div>
+  );
+}
+
 const Navbar5 = ({ className }: Navbar5Props) => {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { data: user, isLoading } = useMe();
+
+  const logoutMutation = useMutation({
+    mutationFn: authService.logout,
+    onSuccess: async () => {
+      queryClient.setQueryData(["me"], null);
+      await queryClient.invalidateQueries({ queryKey: ["me"] });
+      router.push("/login");
+    },
+  });
+
   const features = [
     {
       title: "Dashboard",
@@ -87,7 +138,7 @@ const Navbar5 = ({ className }: Navbar5Props) => {
               <NavigationMenuItem>
                 <NavigationMenuTrigger>Features</NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <div className="grid w-[600px] grid-cols-2 p-3">
+                  <div className="grid w-150 grid-cols-2 p-3">
                     {features.map((feature, index) => (
                       <NavigationMenuLink
                         href={feature.href}
@@ -109,7 +160,7 @@ const Navbar5 = ({ className }: Navbar5Props) => {
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <NavigationMenuLink
-                  href="#"
+                  href="/shoP/products"
                   className={navigationMenuTriggerStyle()}
                 >
                   Products
@@ -134,8 +185,27 @@ const Navbar5 = ({ className }: Navbar5Props) => {
             </NavigationMenuList>
           </NavigationMenu>
           <div className="hidden items-center gap-4 lg:flex">
-            <Button variant="outline">Sign in</Button>
-            <Button>Start for free</Button>
+            {isLoading ? null : user ? (
+              <div className="flex items-center gap-3">
+                <UserInfo user={user} />
+                <Button
+                  variant="outline"
+                  onClick={() => logoutMutation.mutate()}
+                  disabled={logoutMutation.isPending}
+                >
+                  {logoutMutation.isPending ? "Signing out..." : "Sign out"}
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Button asChild variant="outline">
+                  <Link href="/login">Sign in</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/register">Start for free</Link>
+                </Button>
+              </>
+            )}
           </div>
           <Sheet>
             <SheetTrigger asChild className="lg:hidden">
@@ -190,6 +260,9 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                   </AccordionItem>
                 </Accordion>
                 <div className="flex flex-col gap-6">
+                  <Link href="/shoP/products" className="font-medium">
+                    Products
+                  </Link>
                   <a href="#" className="font-medium">
                     Templates
                   </a>
@@ -201,8 +274,30 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                   </a>
                 </div>
                 <div className="mt-6 flex flex-col gap-4">
-                  <Button variant="outline">Sign in</Button>
-                  <Button>Start for free</Button>
+                  {isLoading ? null : user ? (
+                    <>
+                      <UserInfo user={user} />
+                      <Button
+                        variant="outline"
+                        onClick={() => logoutMutation.mutate()}
+                        disabled={logoutMutation.isPending}
+                      >
+                        {logoutMutation.isPending
+                          ? "Signing out..."
+                          : "Sign out"}
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button asChild variant="outline">
+                        <Link href="/login">Sign in</Link>
+                      </Button>
+                      <Button asChild>
+                        <Link href="/register">Start for free</Link>
+                      </Button>
+                    </>
+                  )}
+                  <ModeToggle />
                 </div>
               </div>
             </SheetContent>

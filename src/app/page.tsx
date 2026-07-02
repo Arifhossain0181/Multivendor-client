@@ -1,27 +1,18 @@
-import type { Metadata } from "next";
-import { AppProviders } from "../providers/AppProviders";
 import "./globals.css";
 import { Navbar5 } from "../components/navbar5";
 
-export const metadata: Metadata = {
-  title: "My Marketplace",
-  description: "Multi-vendor marketplace",
-};
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function HomePage() {
   return (
-    
-    <html lang="en" suppressHydrationWarning>
-      <body>
-        <AppProviders>
-           <Navbar5></Navbar5>
-          {children}
-        </AppProviders>
-      </body>
-    </html>
+    <main>
+      <Navbar5 />
+      <section className="container py-16">
+        <h1 className="text-4xl font-semibold tracking-tight">
+          Multivendor marketplace
+        </h1>
+        <p className="mt-4 max-w-2xl text-muted-foreground">
+          Browse products, sign in, or create an account to get started.
+        </p>
+      </section>
+    </main>
   );
 }

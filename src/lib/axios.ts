@@ -12,6 +12,8 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const requestUrl = originalRequest?.url ?? "";
+    const isAuthEndpoint = /\/auth\/(login|register|refresh-token)$/.test(requestUrl);
 
     
     if (!error.response) {
@@ -19,7 +21,7 @@ api.interceptors.response.use(
     }
 
     
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       originalRequest._retry = true; 
 
       try {
@@ -40,7 +42,7 @@ api.interceptors.response.use(
     }
 
     // 
-    const message = error.response?.data?.message || "server error";
+    const message = error.response?.data?.message || error.response?.data?.error || "server error";
     return Promise.reject({ message, status: error.response.status });
   }
 );
