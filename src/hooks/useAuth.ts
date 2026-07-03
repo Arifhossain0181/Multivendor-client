@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMutation } from '@tanstack/react-query';
 import { api } from "../lib/axios";
 import { useRouter } from 'next/navigation';
@@ -18,7 +17,7 @@ export const useLogin = () =>{
 
             // user role condition 
             if(data.user?.role === 'ADMIN'){
-                router.push('/admin/dashboard');
+                router.push('/admin');
             }
             if(data.user?.role === 'SELLER'){
                 router.push('/seller/dashboard');
@@ -28,7 +27,7 @@ export const useLogin = () =>{
                 router.push('/');
             }
         },
-        onError:(error:any) =>{
+        onError:() =>{
             alert('Login failed');
         }
     })
@@ -45,11 +44,11 @@ export const useRegister = () =>{
             const res = await api.post('/auth/register', registerData);
             return res.data;
         },
-        onSuccess:(data) =>{
+    onSuccess:() =>{
             alert('Registration successful');
             router.push('/login');
         },
-        onError:(error:any) =>{
+        onError:() =>{
             alert('Registration failed');
         }
     })

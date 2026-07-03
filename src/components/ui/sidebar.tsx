@@ -10,6 +10,7 @@ import { Button } from "@/src/components/ui/button"
 import { Input } from "@/src/components/ui/input"
 import { Separator } from "@/src/components/ui/separator"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import {
   Sheet,
   SheetContent,
@@ -23,7 +24,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/src/components/ui/tooltip"
-import { LayoutDashboard, ShoppingCart, Package, ListOrdered, PanelLeftIcon } from "lucide-react"
+import { LayoutDashboard, ShoppingCart, Package, ListOrdered, PanelLeftIcon, Users } from "lucide-react"
+import { useMe } from "@/src/features/auth/loginsstanstack/useMe"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -676,6 +678,9 @@ function SidebarMenuSubButton({
 }
 
 function AppSidebar() {
+  const pathname = usePathname()
+  const { data: user } = useMe()
+
   const navItems = [
     { title: "Dashboard", href: "/", icon: LayoutDashboard },
     { title: "Products", href: "/shoP/products", icon: Package },
@@ -683,15 +688,26 @@ function AppSidebar() {
     { title: "Cart", href: "/cart", icon: ShoppingCart },
   ]
 
+  const adminNavItems =
+    user?.role === "ADMIN"
+      ? [
+          { title: "Admin Home", href: "/admin", icon: LayoutDashboard },
+          { title: "Users", href: "/admin/users", icon: Users },
+          { title: "Products", href: "/admin/products", icon: Package },
+          { title: "Orders", href: "/admin/orders", icon: ListOrdered },
+        ]
+      : []
+
   return (
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
+          <SidebarGroupLabel>Main</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild isActive={pathname === item.href}>
                     <Link href={item.href}>
                       <item.icon />
                       <span>{item.title}</span>
@@ -702,6 +718,31 @@ function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        {adminNavItems.length > 0 && (
+          <>
+            <SidebarSeparator />
+            <SidebarGroup>
+              <SidebarGroupLabel>Admin</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {adminNavItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={pathname === item.href}
+                      >
+                        <Link href={item.href}>
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
+        )}
       </SidebarContent>
     </Sidebar>
   )

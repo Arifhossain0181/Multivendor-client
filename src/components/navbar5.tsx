@@ -3,6 +3,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 
+import { useEffect, useState } from "react";
 import { MenuIcon, Moon, Sun, ShoppingCart } from "lucide-react"; // ShoppingCart 
 import Link from "next/link";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -43,14 +44,23 @@ interface Navbar5Props {
 
 export function ModeToggle() {
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <Button
       variant="outline"
       size="icon"
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      disabled={!mounted}
+      aria-label="Toggle theme"
     >
-      {theme === "dark" ? (
+      {!mounted ? (
+        <span className="h-5 w-5" aria-hidden="true" />
+      ) : theme === "dark" ? (
         <Sun className="h-5 w-5" />
       ) : (
         <Moon className="h-5 w-5" />

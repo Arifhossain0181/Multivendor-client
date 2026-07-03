@@ -1,0 +1,61 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { adminService } from "../../services/admin.service";
+import {
+  SellerStatus,
+  UserRole,
+} from "../../app/dashboard/admin/comPonets/tyPes";
+import { toast } from "sonner";
+
+export function useAdminStats() {
+  return useQuery({
+    queryKey: ["admin", "stats"],
+    queryFn: adminService.getStats,
+  });
+}
+
+export function useAdminUsers(role?: UserRole, page = 1) {
+  return useQuery({
+    queryKey: ["admin", "users", role ?? "ALL", page],
+    queryFn: () => adminService.getUsers(role, page),
+  });
+}
+
+export function useUpdateSellerStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, status }: { userId: string; status: SellerStatus }) =>
+      adminService.updateSellerStatus(userId, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+      toast.success("Seller status updated");
+    },
+    onError: () => toast.error("Failed to update seller status"),
+  });
+}
+
+export function useAdminProducts(status?: string, page = 1) {
+  return useQuery({
+    queryKey: ["admin", "products", status ?? "ALL", page],
+    queryFn: () => adminService.getProducts(status, page),
+  });
+}
+
+export function useUpdateProductStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ productId, status }: { productId: string; status: "ACTIVE" | "BLOCKED" }) =>
+      adminService.updateProductStatus(productId, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
+      toast.success("Product status updated");
+    },
+    onError: () => toast.error("Failed to update product status"),
+  });
+}
+
+export function useAdminOrders(page = 1) {
+  return useQuery({
+    queryKey: ["admin", "orders", page],
+    queryFn: () => adminService.getOrders(page),
+  });
+}
