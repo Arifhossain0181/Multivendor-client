@@ -2,7 +2,7 @@
 
 
 import Image from "next/image";
-import { CartItem } from "../../app/cart/tyPes.cart";
+import { CartItem } from "./tyPes.cart";
 import { useUpdateCartItem, useRemoveCartItem } from "../../features/cart/useCart";
 import { Trash2, Minus, Plus } from "lucide-react";
 

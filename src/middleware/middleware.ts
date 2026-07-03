@@ -1,74 +1,75 @@
 
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-const ROLE_ROUTES = {
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
+
+const ROLE_HOME = {
   ADMIN: "/admin",
   SELLER: "/seller",
   USER: "/",
-};
+} as const
 
-export function middleware(request: NextRequest) { 
-    const { pathname } = request.nextUrl;
-  //backend theke tkne ana
-  const token = request.cookies.get("accessToken")?.value;
-  const userRole = request.cookies.get("userRole")?.value;
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+  const token = request.cookies.get("accessToken")?.value
+  const userRole = request.cookies.get("userRole")?.value as
+    | keyof typeof ROLE_HOME
+    | undefined
 
-  // Protected routes
-  const isDashboardRoute =
-    pathname.startsWith("/admin") || pathname.startsWith("/seller");
+  const isAdminRoute = pathname.startsWith("/admin")
+  const isSellerRoute = pathname.startsWith("/seller")
+  const isUserDashboardRoute = pathname.startsWith("/dashboard")
   const isCartOrCheckout =
-    pathname.startsWith("/cart") || pathname.startsWith("/checkout");
-     const isAuthRoute =
-    pathname.startsWith("/login") || pathname.startsWith("/register");
-    const isProtectedRoute = isDashboardRoute || isCartOrCheckout;
+    pathname.startsWith("/cart") || pathname.startsWith("/checkout")
+  const isAuthRoute =
+    pathname.startsWith("/login") || pathname.startsWith("/register")
+  const isProtectedRoute =
+    isAdminRoute || isSellerRoute || isUserDashboardRoute || isCartOrCheckout
 
-  if(!token && isProtectedRoute) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-    if (token && !userRole && isProtectedRoute) {
-    return NextResponse.redirect(new URL("/login", request.url));
+  if (!token && isProtectedRoute) {
+    const loginUrl = new URL("/login", request.url)
+    loginUrl.searchParams.set("redirect", pathname)
+    return NextResponse.redirect(loginUrl)
   }
 
-  // Role based access control
+  if (token && !userRole && isProtectedRoute) {
+    return NextResponse.redirect(new URL("/login", request.url))
+  }
+
   if (token && userRole) {
-    // seller jodi admin route e access korte chay
-    if (pathname.startsWith("/admin") && userRole !== "ADMIN") {
-      return NextResponse.redirect(
-        new URL(userRole === "ADMIN" ? "/admin" : "/", request.url),
-      );
+    const home = ROLE_HOME[userRole] ?? "/"
+
+    if (isAdminRoute && userRole !== "ADMIN") {
+      return NextResponse.redirect(new URL(home, request.url))
     }
-    if (pathname.startsWith("/seller") && userRole !== "SELLER") {
-      return NextResponse.redirect(
-        new URL(userRole === "ADMIN" ? "/admin" : "/", request.url),
-      );
+
+    if (isSellerRoute && userRole !== "SELLER") {
+      return NextResponse.redirect(new URL(home, request.url))
     }
-    // Cart/Checkout  USER (customer)
+
+    if (isUserDashboardRoute && userRole !== "USER") {
+      return NextResponse.redirect(new URL(home, request.url))
+    }
+
     if (isCartOrCheckout && userRole !== "USER") {
-      return NextResponse.redirect(new URL("/", request.url));
+      return NextResponse.redirect(new URL(home, request.url))
     }
-    if (pathname.startsWith("/login") || pathname.startsWith("/register")) {
-      if (userRole === "ADMIN")
-        return NextResponse.redirect(new URL("/admin", request.url));
-      if (userRole === "SELLER")
-        return NextResponse.redirect(new URL("/seller", request.url));
-      return NextResponse.redirect(new URL("/", request.url));
-    }
-    if(isAuthRoute){
-      const  destination= ROLE_ROUTES[userRole as keyof typeof ROLE_ROUTES] || "/";
-      return NextResponse.redirect(new URL(destination, request.url));
+
+    if (isAuthRoute) {
+      return NextResponse.redirect(new URL(home, request.url))
     }
   }
-  return NextResponse.next();
+
+  return NextResponse.next()
 }
+
 export const config = {
   matcher: [
-    '/admin/:path*',
-    '/seller/:path*',
-    '/cart/:path*',
-    '/checkout/:path*',
-    '/login',
-    '/register',
+    "/admin/:path*",
+    "/seller/:path*",
+    "/dashboard/:path*",
+    "/cart/:path*",
+    "/checkout/:path*",
+    "/login",
+    "/register",
   ],
-};
+}

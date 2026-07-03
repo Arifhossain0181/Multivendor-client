@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { CartItem } from "../../app/cart/tyPes.cart";
+import { CartItem } from "./tyPes.cart";
 
 export default function CartSummary({ items }: { items: CartItem[] }) {
   const router = useRouter();

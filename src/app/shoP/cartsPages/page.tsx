@@ -2,10 +2,10 @@
 "use client";
 
 import { useCart } from "../../../features/cart/useCart";
-import CartSellerGroup from "../../../app/cart/CartSellerGroup";
-import CartSummary from "../../../app/cart/CartSummary";
-import EmptyCart from "../../../app/cart/EmptyCart";
-import { CartGroup } from "../../../app/cart/tyPes.cart";
+import CartSellerGroup from "../../cart/CartSellerGroup";
+import CartSummary from "../../cart/CartSummary";
+import EmptyCart from "../../cart/EmptyCart";
+import { CartGroup } from "../../cart/tyPes.cart";
 
 function groupBySeller(items: any[]): CartGroup[] {
   const map = new Map<string, CartGroup>();
