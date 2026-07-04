@@ -21,15 +21,16 @@ export interface AdminStats {
   totalRevenue: number;
 }
 
-export interface AdminProduct {
+export type AdminProduct = {
   id: string;
   name: string;
   image: string;
   sellerName: string;
   price: number;
-  status: "PENDING" | "ACTIVE" | "BLOCKED";
+  quantity?: number; //  NEW — total stock quantity
+  status: "DRAFT" | "ACTIVE" | "BLOCKED";
   createdAt: string;
-}
+};
 
 export interface AdminSubOrder {
   id: string;

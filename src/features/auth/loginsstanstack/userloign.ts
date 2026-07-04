@@ -23,7 +23,7 @@ export function useLogin() {
 
          if (user.role === "ADMIN") router.push("/admin");
       else if (user.role === "SELLER") router.push("/seller");
-      else router.push("/products");
+      else router.push("/shoP/products");
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Login failed. Please try again.");

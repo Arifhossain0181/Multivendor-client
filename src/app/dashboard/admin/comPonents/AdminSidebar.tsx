@@ -16,7 +16,7 @@ export const adminNavItems: AdminNavItem[] = [
   { href: "/dashboard/admin/users", label: "Users & Sellers", icon: Users },
   { href: "/dashboard/admin/products", label: "Products", icon: Package },
   { href: "/dashboard/admin/orders", label: "Orders", icon: ListOrdered },
-  { href: "/dashboard/admin/add-products", label: "Add Products", icon: Package },
+  { href: "/dashboard/add-products", label: "Add Products", icon: Package },
   { href: "/dashboard/admin/add-categories", label: "Add Categories", icon: Package },
 ];
 

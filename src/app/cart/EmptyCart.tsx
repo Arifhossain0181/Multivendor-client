@@ -10,7 +10,7 @@ export default function EmptyCart() {
         Browse products and add items to get started.
       </p>
       <Link
-        href="/products"
+        href="/shoP/products"
         className="mt-6 rounded-lg bg-[#0A1F44] px-6 py-2.5 text-sm font-semibold text-white hover:opacity-90"
       >
         Continue Shopping

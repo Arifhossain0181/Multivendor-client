@@ -2,17 +2,22 @@
 "use client";
 
 import { useProduct } from "@/src/features/products/useProducts";
+import { useAddToCart } from "@/src/features/cart/useCart";
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import { use } from "react";
+import { toast } from "sonner";
 
 type ProductDetailPageProps = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 export default function ProductDetailPage({ params }: ProductDetailPageProps) {
-  const { data: product, isLoading, isError } = useProduct(params.id);
+  const resolvedParams = use(params);
+  const { data: product, isLoading, isError } = useProduct(resolvedParams.id);
+  const addToCartMutation = useAddToCart();
 
   if (isLoading) {
     return <p className="p-6 text-center text-gray-500">Loading product...</p>;
@@ -21,6 +26,20 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
   if (isError || !product) {
     notFound();
   }
+
+  const handleAddToCart = () => {
+    const variantId = product.variants?.[0]?.id;
+    if (!variantId) {
+      toast.error("This product has no variants available to add to cart.");
+      return;
+    }
+
+    addToCartMutation.mutate({
+      productId: product.id,
+      selectedVariantId: variantId,
+      quantity: 1,
+    });
+  };
 
   return (
     <div className="max-w-4xl mx-auto p-6 grid sm:grid-cols-2 gap-8">
@@ -42,10 +61,11 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
         </p>
 
         <button
-          disabled={product.stock === 0}
+          disabled={product.stock === 0 || addToCartMutation.isPending}
+          onClick={handleAddToCart}
           className="bg-black text-white px-6 py-2 rounded-md disabled:opacity-40"
         >
-          Add to Cart
+          {addToCartMutation.isPending ? "Adding..." : "Add to Cart"}
         </button>
       </div>
     </div>

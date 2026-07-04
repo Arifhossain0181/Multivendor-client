@@ -32,12 +32,30 @@ export function useRemoveCartItem() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (itemId: string) => cartService.removeItem(itemId),
-    onSuccess: (data) => {
-      queryClient.setQueryData(CART_QUERY_KEY, data);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
       toast.success("Item removed");
     },
     onError: () => {
       toast.error("Failed to remove item");
+    },
+  });
+}
+
+export function useAddToCart() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: {
+      productId: string;
+      selectedVariantId: string;
+      quantity: number;
+    }) => cartService.addItem(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+      toast.success("Item added to cart successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || error?.message || "Failed to add item to cart");
     },
   });
 }

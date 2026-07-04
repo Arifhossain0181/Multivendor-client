@@ -26,7 +26,7 @@ export type ProductListResponse = {
 
 export type ProductDetailsResponse = Product;
 
-export type CreateProductPayload = Record<string, unknown>;
+export type CreateProductPayload = FormData | Record<string, unknown>;
 
 export type UpdateProductPayload = Record<string, unknown>;
 

@@ -4,14 +4,18 @@ import { ProductId } from "./Product.service";
 export const cartService = {
     getCart:async () :Promise<Cart> =>{
         const {data} = await api.get('/cart');
-        return data;
+        return data.data;
     },
     addItem:async (payload:{
         productId: ProductId;
         selectedVariantId: string;
         quantity: number;
     }): Promise<Cart> =>{
-        const {data} = await api.post('/cart/items', payload);
+        const {data} = await api.post('/cart/items', {
+            productId: payload.productId,
+            variantId: payload.selectedVariantId,
+            quantity: payload.quantity
+        });
         return data;
     },
     updateQuantity:async (itemId: string, quantity: number): Promise<Cart> =>{

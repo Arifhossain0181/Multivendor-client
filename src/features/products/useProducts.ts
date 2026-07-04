@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "../../lib/axios";
 import {
   type CreateProductPayload,
   type ProductId,
@@ -10,12 +11,34 @@ import {
   updateProduct,
   deleteProduct,
 } from "../../services/Product.service";
- 
+
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+function normalizeCategories(payload: unknown): Category[] {
+  if (Array.isArray(payload)) {
+    return payload as Category[];
+  }
+
+  if (payload && typeof payload === "object") {
+    const record = payload as Record<string, unknown>;
+
+    if (Array.isArray(record.items)) return record.items as Category[];
+    if (Array.isArray(record.data)) return record.data as Category[];
+    if (Array.isArray(record.categories)) return record.categories as Category[];
+  }
+
+  return [];
+}
 
 export const productKeys = {
   all: ["products"],
   list: (params?: ProductListParams) => ["products", "list", params],
   detail: (id: ProductId) => ["products", "detail", id],
+  categories: ["products", "categories"],
 };
 
 // PRoduct lisht anar hooks
@@ -80,6 +103,17 @@ export function useFetchProducts(params?: ProductListParams) {
 export function useAddToCart() {
   return useMutation({
     mutationFn: async (payload: { productId: ProductId; variantId: string; quantity: number }) => payload,
+  });
+}
+
+export function useCategories() {
+  return useQuery({
+    queryKey: productKeys.categories,
+    queryFn: async () => {
+      const { data } = await api.get("/categories");
+      return normalizeCategories(data);
+    },
+    staleTime: 1000 * 60 * 5,
   });
 }
  

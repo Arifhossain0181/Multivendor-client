@@ -674,7 +674,13 @@ function AppSidebar() {
     { title: "Cart", href: "/cart", icon: ShoppingCart },
   ]
 
+  const sellerNavItems = [
+    { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { title: "Add Products", href: "/dashboard/add-products", icon: Package },
+  ]
+
   const isAdmin = user?.role === "ADMIN"
+  const isSeller = user?.role === "SELLER"
 
   if (isLoading) {
     return (
@@ -711,6 +717,24 @@ function AppSidebar() {
                       <Link href={item.href}>
                         <item.icon />
                         <span>{item.label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : isSeller ? (
+          <SidebarGroup>
+            <SidebarGroupLabel>Seller</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {sellerNavItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={pathname === item.href}>
+                      <Link href={item.href}>
+                        <item.icon />
+                        <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

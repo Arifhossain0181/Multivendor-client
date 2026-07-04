@@ -5,6 +5,7 @@ import {
   UserRole,
 } from "../../app/dashboard/admin/comPonents/types.admin";
 import { toast } from "sonner";
+import { api } from "@/src/lib/axios";
 
 export function useAdminStats() {
   return useQuery({
@@ -70,5 +71,19 @@ export function useAdminOrders(page = 1) {
   return useQuery({
     queryKey: ["admin", "orders", page],
     queryFn: () => adminService.getOrders(page),
+  });
+}
+// Product delete korar API call
+async function deleteProduct(productId: string) {
+  await api.delete(`/admin/products/${productId}`);
+}
+
+export function useDeleteProduct() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteProduct,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
+    },
   });
 }
