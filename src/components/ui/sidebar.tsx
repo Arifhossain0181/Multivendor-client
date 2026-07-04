@@ -8,7 +8,6 @@ import { useIsMobile } from "@/src/hooks/use-mobile"
 import { cn } from "@/libs/utils"
 import { Button } from "@/src/components/ui/button"
 import { Input } from "@/src/components/ui/input"
-import { Separator } from "@/src/components/ui/separator"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -24,8 +23,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/src/components/ui/tooltip"
-import { LayoutDashboard, ShoppingCart, Package, ListOrdered, PanelLeftIcon, Users } from "lucide-react"
+import { LayoutDashboard, ShoppingCart, Package, ListOrdered, PanelLeftIcon } from "lucide-react"
 import { useMe } from "@/src/features/auth/loginsstanstack/useMe"
+import { adminNavItems } from "@/src/app/dashboard/admin/comPonents/AdminSidebar"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -353,20 +353,6 @@ function SidebarFooter({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-function SidebarSeparator({
-  className,
-  ...props
-}: React.ComponentProps<typeof Separator>) {
-  return (
-    <Separator
-      data-slot="sidebar-separator"
-      data-sidebar="separator"
-      className={cn("mx-2 w-auto bg-sidebar-border", className)}
-      {...props}
-    />
-  )
-}
-
 function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -679,7 +665,7 @@ function SidebarMenuSubButton({
 
 function AppSidebar() {
   const pathname = usePathname()
-  const { data: user } = useMe()
+  const { data: user, isLoading } = useMe()
 
   const navItems = [
     { title: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -688,60 +674,68 @@ function AppSidebar() {
     { title: "Cart", href: "/cart", icon: ShoppingCart },
   ]
 
-  const adminNavItems =
-    user?.role === "ADMIN"
-      ? [
-          { title: "Admin Home", href: "/admin", icon: LayoutDashboard },
-          { title: "Users", href: "/admin/users", icon: Users },
-          { title: "Products", href: "/admin/products", icon: Package },
-          { title: "Orders", href: "/admin/orders", icon: ListOrdered },
-        ]
-      : []
+  const isAdmin = user?.role === "ADMIN"
+
+  if (isLoading) {
+    return (
+      <Sidebar>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Loading</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton disabled>
+                    <span>Loading sidebar...</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
+    )
+  }
 
   return (
     <Sidebar>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Main</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={pathname === item.href}>
-                    <Link href={item.href}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        {adminNavItems.length > 0 && (
-          <>
-            <SidebarSeparator />
-            <SidebarGroup>
-              <SidebarGroupLabel>Admin</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {adminNavItems.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={pathname === item.href}
-                      >
-                        <Link href={item.href}>
-                          <item.icon />
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </>
+        {isAdmin ? (
+          <SidebarGroup>
+            <SidebarGroupLabel>Admin</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminNavItems.map((item) => (
+                  <SidebarMenuItem key={item.label}>
+                    <SidebarMenuButton asChild isActive={pathname === item.href}>
+                      <Link href={item.href}>
+                        <item.icon />
+                        <span>{item.label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : (
+          <SidebarGroup>
+            <SidebarGroupLabel>Main</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {navItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={pathname === item.href}>
+                      <Link href={item.href}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
         )}
       </SidebarContent>
     </Sidebar>
@@ -771,7 +765,6 @@ export {
   SidebarMenuSubItem,
   SidebarProvider,
   SidebarRail,
-  SidebarSeparator,
   SidebarTrigger,
   useSidebar,
 }

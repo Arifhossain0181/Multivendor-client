@@ -1,11 +1,12 @@
 "use client";
 
-import { AdminUser } from "./tyPes";
-import { useUpdateSellerStatus } from "../../../../features/admin/useAdmin";
-import SellerStatusBadge from "./sellerbudge";
+import { AdminUser } from "./types.admin";
+import { useUpdateSellerStatus, useToggleUserActive } from "../../../../features/admin/useAdmin";
+import SellerStatusBadge from "./sellerstatusbadge";
 
 export default function UserRow({ user }: { user: AdminUser }) {
   const updateSellerMutation = useUpdateSellerStatus();
+  const toggleActiveMutation = useToggleUserActive();
 
   return (
     <tr className="border-b border-gray-50 dark:border-gray-800">
@@ -50,7 +51,19 @@ export default function UserRow({ user }: { user: AdminUser }) {
         )}
       </td>
       <td className="px-4 py-3">
-        <span className="text-xs text-gray-400">—</span>
+        <button
+          onClick={() =>
+            toggleActiveMutation.mutate({ userId: user.id, isActive: !user.isActive })
+          }
+          disabled={toggleActiveMutation.isPending}
+          className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+            user.isActive
+              ? "bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400"
+              : "bg-red-50 text-red-500 dark:bg-red-900/30 dark:text-red-400"
+          }`}
+        >
+          {user.isActive ? "Active" : "Suspended"}
+        </button>
       </td>
     </tr>
   );

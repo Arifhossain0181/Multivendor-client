@@ -3,7 +3,7 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 const ROLE_HOME = {
-  ADMIN: "/admin",
+  ADMIN: "/dashboard/admin",
   SELLER: "/seller",
   USER: "/",
 } as const
@@ -15,15 +15,15 @@ export function middleware(request: NextRequest) {
     | keyof typeof ROLE_HOME
     | undefined
 
-  const isAdminRoute = pathname.startsWith("/admin")
+  const isAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/dashboard/admin")
   const isSellerRoute = pathname.startsWith("/seller")
-  const isUserDashboardRoute = pathname.startsWith("/dashboard")
+  const isDashboardRoute = pathname.startsWith("/dashboard")
   const isCartOrCheckout =
     pathname.startsWith("/cart") || pathname.startsWith("/checkout")
   const isAuthRoute =
     pathname.startsWith("/login") || pathname.startsWith("/register")
   const isProtectedRoute =
-    isAdminRoute || isSellerRoute || isUserDashboardRoute || isCartOrCheckout
+    isAdminRoute || isSellerRoute || isDashboardRoute || isCartOrCheckout
 
   if (!token && isProtectedRoute) {
     const loginUrl = new URL("/login", request.url)
@@ -43,10 +43,6 @@ export function middleware(request: NextRequest) {
     }
 
     if (isSellerRoute && userRole !== "SELLER") {
-      return NextResponse.redirect(new URL(home, request.url))
-    }
-
-    if (isUserDashboardRoute && userRole !== "USER") {
       return NextResponse.redirect(new URL(home, request.url))
     }
 

@@ -9,6 +9,7 @@ export interface AdminUser {
   sellerStatus?: SellerStatus;
   shopName?: string;
   createdAt: string;
+  isActive: boolean;
 }
 
 export interface AdminStats {
@@ -26,22 +27,23 @@ export interface AdminProduct {
   image: string;
   sellerName: string;
   price: number;
-  status: "DRAFT" | "ACTIVE" | "BLOCKED";
+  status: "PENDING" | "ACTIVE" | "BLOCKED";
   createdAt: string;
+}
+
+export interface AdminSubOrder {
+  id: string;
+  sellerName: string;
+  status: string;
+  subtotal: number;
+  itemCount: number;
 }
 
 export interface AdminOrder {
   id: string;
   customerName: string;
   customerEmail: string;
-  status: "PENDING_PAYMENT" | "PAID" | "COMPLETED" | "CANCELLED" | "PAYMENT_FAILED_STOCK";
+  status: string;
   totalAmount: number;
-  createdAt: string;
-  subOrders: Array<{
-    id: string;
-    sellerName: string;
-    status: "PENDING" | "CONFIRMED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
-    subtotal: number;
-    itemCount: number;
-  }>;
+  subOrders: AdminSubOrder[];
 }

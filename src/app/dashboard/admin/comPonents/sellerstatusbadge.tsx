@@ -1,4 +1,4 @@
-import { SellerStatus } from "./tyPes";
+import { SellerStatus } from "./types.admin";
 
 const styles: Record<SellerStatus, string> = {
   PENDING: "bg-yellow-50 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400",

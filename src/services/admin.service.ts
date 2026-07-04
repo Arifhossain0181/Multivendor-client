@@ -6,7 +6,7 @@ import {
   AdminOrder,
   SellerStatus,
   UserRole,
-} from "../app/dashboard/admin/comPonets/tyPes";
+} from "../app/dashboard/admin/comPonents/types.admin";
 import { api} from "../lib/axios";
 
 export const adminService = {
@@ -29,6 +29,16 @@ export const adminService = {
   ): Promise<AdminUser> => {
     const { data } = await api.patch(`/admin/users/${userId}/seller-status`, {
       status,
+    });
+    return data;
+  },
+
+  toggleUserActive: async (
+    userId: string,
+    isActive: boolean
+  ): Promise<AdminUser> => {
+    const { data } = await api.patch(`/admin/users/${userId}/active`, {
+      isActive,
     });
     return data;
   },

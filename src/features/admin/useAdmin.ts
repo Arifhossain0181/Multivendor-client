@@ -3,7 +3,7 @@ import { adminService } from "../../services/admin.service";
 import {
   SellerStatus,
   UserRole,
-} from "../../app/dashboard/admin/comPonets/tyPes";
+} from "../../app/dashboard/admin/comPonents/types.admin";
 import { toast } from "sonner";
 
 export function useAdminStats() {
@@ -30,6 +30,19 @@ export function useUpdateSellerStatus() {
       toast.success("Seller status updated");
     },
     onError: () => toast.error("Failed to update seller status"),
+  });
+}
+
+export function useToggleUserActive() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, isActive }: { userId: string; isActive: boolean }) =>
+      adminService.toggleUserActive(userId, isActive),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+      toast.success("User status updated");
+    },
+    onError: () => toast.error("Failed to update user status"),
   });
 }
 
