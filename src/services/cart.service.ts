@@ -4,7 +4,25 @@ import { ProductId } from "./Product.service";
 export const cartService = {
     getCart:async () :Promise<Cart> =>{
         const {data} = await api.get('/cart');
-        return data.data;
+        const rawCart = data.data;
+        if (!rawCart) return { items: [] };
+
+        return {
+            ...rawCart,
+            items: (rawCart.items || []).map((item: any) => ({
+                id: item.id,
+                sellerId: item.sellerId,
+                sellerName: item.product?.seller?.shopName ?? "Unknown Shop",
+                productId: item.productId,
+                productName: item.product?.name ?? "Unknown Product",
+                productImage: item.product?.imageUrls?.[0] ?? "",
+                variantId: item.variantId,
+                variantLabel: item.variant?.name ?? "",
+                price: typeof item.variant?.price === 'number' ? item.variant.price : parseFloat(item.variant?.price ?? '0'),
+                quantity: item.quantity,
+                availableQty: item.variant?.inventory?.availableQty ?? 0,
+            }))
+        };
     },
     addItem:async (payload:{
         productId: ProductId;

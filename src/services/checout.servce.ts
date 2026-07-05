@@ -15,7 +15,12 @@ export const checkoutService = {
   createCheckout: async (
     payload: CheckoutPayload
   ): Promise<CheckoutResponse> => {
-    const { data } = await api.post("/checkout", payload);
-    return data;
+    const addressString = `${payload.shippingAddress.fullName}, Phone: ${payload.shippingAddress.phone}, ${payload.shippingAddress.address}, ${payload.shippingAddress.city} - ${payload.shippingAddress.postalCode}`;
+    const { data } = await api.post("/checkout", { shippingAddress: addressString });
+    
+    return {
+      checkoutUrl: data.data.stripeUrl,
+      masterOrderId: data.data.masterOrderId
+    };
   },
 };
