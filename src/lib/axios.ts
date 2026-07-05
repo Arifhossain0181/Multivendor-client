@@ -35,7 +35,18 @@ api.interceptors.response.use(
       } catch (refreshError) {
         
         if (typeof window !== "undefined") {
-          window.location.href = "/login";
+          const path = window.location.pathname;
+          const isProtected = 
+            path.startsWith("/admin") || 
+            path.startsWith("/dashboard") || 
+            path.startsWith("/seller") || 
+            path.startsWith("/cart") || 
+            path.startsWith("/checkout") ||
+            path.startsWith("/orders");
+
+          if (isProtected) {
+            window.location.href = `/login?redirect=${encodeURIComponent(path)}`;
+          }
         }
         return Promise.reject(refreshError);
       }

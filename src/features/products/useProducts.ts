@@ -116,4 +116,25 @@ export function useCategories() {
     staleTime: 1000 * 60 * 5,
   });
 }
+
+export function useMyProducts(params?: ProductListParams, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: ["products", "my-products", params],
+    queryFn: async () => {
+      const { data } = await api.get("/products/my-products", { params });
+      return data;
+    },
+    staleTime: 1000 * 60 * 5,
+    ...options,
+  });
+}
+
+export function useFetchMyProducts(params?: ProductListParams) {
+  const { data, ...query } = useMyProducts(params);
+
+  return {
+    data: data?.data ?? [],
+    ...query,
+  };
+}
  

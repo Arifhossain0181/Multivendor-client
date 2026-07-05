@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useMemo } from "react";
@@ -14,6 +15,8 @@ import {
   Users,
   Truck,
   Heart,
+  ReceiptText,
+  CalendarDays,
 } from "lucide-react";
 import {
   Bar,
@@ -30,7 +33,8 @@ import {
 } from "recharts";
 
 import { useMe } from "@/src/features/auth/loginsstanstack/useMe";
-import { useProducts } from "@/src/features/products/useProducts";
+import { useMyProducts } from "@/src/features/products/useProducts";
+import { useAdminStats } from "@/src/features/admin/useAdmin";
 import { cartService } from "@/src/services/cart.service";
 
 type DashboardRole = "ADMIN" | "SELLER" | "USER";
@@ -81,8 +85,15 @@ export default function DashboardPage() {
   const { data: user, isLoading: userLoading } = useMe();
   const role = (user?.role ?? "USER") as DashboardRole;
 
-  const { data: productResponse, isLoading: productsLoading } = useProducts();
+  // Fetch only this seller/admin's OWN products for per-role stats
+  const { data: productResponse, isLoading: productsLoading } = useMyProducts(
+    undefined,
+    { enabled: role === "ADMIN" || role === "SELLER" }
+  );
   const products = productResponse?.data ?? [];
+
+  // For admin: fetch platform-wide stats (total products across ALL sellers)
+  const { data: adminStats } = useAdminStats();
 
   const { data: cartResponse, isLoading: cartLoading } = useQuery({
     queryKey: ["dashboard-cart"],
@@ -91,7 +102,18 @@ export default function DashboardPage() {
     staleTime: 1000 * 60 * 5,
   });
 
+  const { data: ordersResponse, isLoading: ordersLoading } = useQuery({
+    queryKey: ["dashboard-orders"],
+    queryFn: async () => {
+      const { data } = await import("@/src/lib/axios").then((mod) => mod.api.get("/orders/my-orders?page=1&limit=5"));
+      return data;
+    },
+    enabled: role === "USER",
+    staleTime: 1000 * 60 * 5,
+  });
+
   const cartItems = cartResponse?.items ?? [];
+  const orders = ordersResponse?.data?.orders ?? [];
 
   const inventoryValue = useMemo(
     () => products.reduce((sum, product) => sum + product.price * product.stock, 0),
@@ -151,9 +173,9 @@ export default function DashboardPage() {
     if (role === "ADMIN") {
       return [
         {
-          label: "Total products",
-          value: String(products.length),
-          note: "All live catalog items currently available on the platform.",
+          label: "Total products (platform)",
+          value: String(adminStats?.totalProducts ?? products.length),
+          note: "Grand total of all products listed by Admin + all Sellers.",
           icon: Package,
         },
         {
@@ -237,7 +259,7 @@ export default function DashboardPage() {
         tone: "red" as const,
       },
     ];
-  }, [averagePrice, cartItems.length, inventoryValue, lowStockProducts.length, products.length, role, totalCartQuantity, totalCartValue]);
+  }, [adminStats?.totalProducts, averagePrice, cartItems.length, inventoryValue, lowStockProducts.length, products.length, role, totalCartQuantity, totalCartValue]);
 
   const heading =
     role === "ADMIN"
@@ -253,7 +275,7 @@ export default function DashboardPage() {
         ? "Track catalog performance and restock needs in real time."
         : "Review your cart and shopping activity in real time.";
 
-  const isLoading = userLoading || productsLoading || (role === "USER" && cartLoading);
+  const isLoading = userLoading || productsLoading || (role === "USER" && (cartLoading || ordersLoading));
 
   if (isLoading) {
     return (
@@ -425,6 +447,71 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {role === "USER" && (
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <div className="mb-4 flex items-center gap-2">
+            <ReceiptText className="h-5 w-5 text-emerald-500" />
+            <h2 className="text-lg font-semibold text-foreground">Payment & product history</h2>
+          </div>
+
+          {orders.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+              No payments or orders have been placed yet.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {orders.map((order: any) => (
+                <div key={order.id} className="rounded-xl border border-border bg-background p-4">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">Order #{order.id.slice(0, 8)}</p>
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                        <span className="inline-flex items-center gap-1">
+                          <CalendarDays className="h-4 w-4" />
+                          {new Date(order.createdAt).toLocaleDateString("en-BD")}
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <CreditCard className="h-4 w-4" />
+                          {order.status}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-sm font-semibold text-foreground">
+                      Total: {formatCurrency(Number(order.totalAmount || 0))}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 space-y-2">
+                    {(order.subOrders || []).map((subOrder: any) => (
+                      <div key={subOrder.id} className="rounded-lg border border-border/70 bg-muted/30 p-3">
+                        <div className="flex items-center justify-between gap-2 text-sm">
+                          <span className="font-medium text-foreground">Seller: {subOrder.sellerId}</span>
+                          <span className="text-muted-foreground">{subOrder.status}</span>
+                        </div>
+                        <div className="mt-2 space-y-2">
+                          {(subOrder.items || []).map((item: any) => (
+                            <div key={item.id} className="flex items-center justify-between rounded-md border border-border/60 bg-background px-3 py-2 text-sm">
+                              <div>
+                                <p className="font-medium text-foreground">{item.productName}</p>
+                                <p className="text-muted-foreground">{item.variantName}</p>
+                              </div>
+                              <div className="text-right text-muted-foreground">
+                                <p>Qty: {item.quantity}</p>
+                                <p>৳{Number(item.unitPrice || 0).toLocaleString()}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

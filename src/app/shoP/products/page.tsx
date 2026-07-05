@@ -38,17 +38,35 @@ export default function ProductsPage() {
             <Link
               key={product.id}
               href={`/shoP/products/${product.id}`}
-              className="block border rounded-lg p-3 hover:shadow-md transition"
+              className={`block rounded-lg border p-3 transition hover:shadow-md ${
+                product.stock === 0
+                  ? "border-red-200 bg-red-50/60 opacity-85"
+                  : "border-gray-200"
+              }`}
             >
-              <Image
-                src={product.imageUrl}
-                alt={product.name}
-                width={400}
-                height={160}
-                className="w-full h-40 object-cover rounded-md mb-2"
-              />
+              <div className="relative">
+                <Image
+                  src={product.imageUrl}
+                  alt={product.name}
+                  width={400}
+                  height={160}
+                  className="mb-2 h-40 w-full rounded-md object-cover"
+                />
+                {product.stock === 0 && (
+                  <span className="absolute left-2 top-2 rounded-full bg-red-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
+                    Out of stock
+                  </span>
+                )}
+              </div>
               <h2 className="font-medium truncate">{product.name}</h2>
               <p className="text-green-600 font-semibold">Tk{product.price}</p>
+              <p
+                className={`mt-1 text-xs font-medium ${
+                  product.stock === 0 ? "text-red-500" : "text-gray-500"
+                }`}
+              >
+                {product.stock > 0 ? `${product.stock} in stock` : "Unavailable right now"}
+              </p>
             </Link>
           ))}
         </div>

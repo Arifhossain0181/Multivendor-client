@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { api } from "../lib/axios";
 import { Cart } from "../app/cart/tyPes.cart";
 import { ProductId } from "./Product.service";
@@ -45,7 +46,7 @@ export const cartService = {
         return data;
     },
     clearCart:async (): Promise<void> =>{
-        const {data} = await api.delete('/cart/items');
+        const {data} = await api.delete('/cart');
         return data;
     }
 }

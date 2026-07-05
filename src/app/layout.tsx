@@ -4,6 +4,7 @@ import "./globals.css";
 import { AppProviders } from "../providers/AppProviders";
 import { Geist } from "next/font/google";
 import { cn } from "@/src/libs/utils";
+import { LayoutWrapper } from "@/src/components/LayoutWrapper";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -24,7 +25,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
       <body>
         <AppProviders>
-          {children}
+          <LayoutWrapper>
+            {children}
+          </LayoutWrapper>
         </AppProviders>
       </body>
     </html>

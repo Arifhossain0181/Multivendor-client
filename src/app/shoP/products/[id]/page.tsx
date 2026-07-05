@@ -56,16 +56,27 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
         <p className="text-green-600 text-xl font-bold mb-4">Tk{product.price}</p>
         <p className="text-gray-600 mb-6">{product.description}</p>
 
-        <p className="text-sm text-gray-400 mb-4">
-          Stock: {product.stock > 0 ? `${product.stock} units` : "Out of stock"}
-        </p>
+        <div className="mb-4 flex items-center gap-3">
+          <p className="text-sm text-gray-500">
+            Stock: {product.stock > 0 ? `${product.stock} units` : "Out of stock"}
+          </p>
+          {product.stock === 0 && (
+            <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">
+              Sold out
+            </span>
+          )}
+        </div>
 
         <button
           disabled={product.stock === 0 || addToCartMutation.isPending}
           onClick={handleAddToCart}
-          className="bg-black text-white px-6 py-2 rounded-md disabled:opacity-40"
+          className="rounded-md bg-black px-6 py-2 text-white disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {addToCartMutation.isPending ? "Adding..." : "Add to Cart"}
+          {product.stock === 0
+            ? "Out of stock"
+            : addToCartMutation.isPending
+              ? "Adding..."
+              : "Add to Cart"}
         </button>
       </div>
     </div>
