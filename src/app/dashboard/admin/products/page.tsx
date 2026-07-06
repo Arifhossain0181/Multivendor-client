@@ -19,8 +19,8 @@ const filters: Array<{ label: string; value: string | undefined }> = [
   { label: "Blocked", value: "BLOCKED" },
 ];
 
-// NEW — status dropdown-e je options thakbe
-const statusOptions: AdminProduct["status"][] = ["DRAFT", "ACTIVE", "BLOCKED"];
+// NEW — status dropdown e only moderation-supported options thakbe
+const statusOptions: Array<Exclude<AdminProduct["status"], "DRAFT">> = ["ACTIVE", "BLOCKED"];
 
 function StatusChip({ status }: { status: AdminProduct["status"] }) {
   const tone =
@@ -45,9 +45,12 @@ export default function AdminProductsPage() {
   const [deleteTarget, setDeleteTarget] = useState<AdminProduct | null>(null);
 
   // NEW — dropdown theke status change handler
-  const handleStatusChange = (productId: string, newStatus: string) => {
+  const handleStatusChange = (
+    productId: string,
+    newStatus: Exclude<AdminProduct["status"], "DRAFT">
+  ) => {
     updateStatus.mutate(
-      { productId, status: newStatus as AdminProduct["status"] },
+      { productId, status: newStatus },
       {
         onSuccess: () => toast.success("Status updated"),
         onError: () => toast.error("Failed to update status"),
@@ -60,11 +63,9 @@ export default function AdminProductsPage() {
     if (!deleteTarget) return;
     deleteProduct.mutate(deleteTarget.id, {
       onSuccess: () => {
-        toast.success("Product deleted");
         setDeleteTarget(null);
       },
       onError: () => {
-        toast.error("Failed to delete product");
         setDeleteTarget(null);
       },
     });
@@ -163,18 +164,29 @@ export default function AdminProductsPage() {
                   <td className="px-4 py-3">
                     <div className="flex flex-col gap-1">
                       <StatusChip status={product.status} />
-                      <select
-                        value={product.status}
-                        onChange={(e) => handleStatusChange(product.id, e.target.value)}
-                        disabled={updateStatus.isPending}
-                        className="rounded-md border border-gray-200 bg-transparent px-2 py-1 text-xs outline-none focus:border-cyan-500 dark:border-gray-700 dark:text-gray-200"
-                      >
-                        {statusOptions.map((opt) => (
-                          <option key={opt} value={opt}>
-                            {opt}
-                          </option>
-                        ))}
-                      </select>
+                      {product.status === "DRAFT" ? (
+                        <p className="text-[11px] text-gray-400">
+                          Draft items are visible here, but only ACTIVE and BLOCKED are editable.
+                        </p>
+                      ) : (
+                        <select
+                          value={product.status}
+                          onChange={(e) =>
+                            handleStatusChange(
+                              product.id,
+                              e.target.value as Exclude<AdminProduct["status"], "DRAFT">
+                            )
+                          }
+                          disabled={updateStatus.isPending}
+                          className="rounded-md border border-gray-200 bg-transparent px-2 py-1 text-xs outline-none focus:border-cyan-500 dark:border-gray-700 dark:text-gray-200"
+                        >
+                          {statusOptions.map((opt) => (
+                            <option key={opt} value={opt}>
+                              {opt}
+                            </option>
+                          ))}
+                        </select>
+                      )}
                     </div>
                   </td>
                   <td className="px-4 py-3">
@@ -212,7 +224,7 @@ export default function AdminProductsPage() {
         </button>
         <button
           onClick={() => setPage((current) => current + 1)}
-          disabled={(data?.items.length ?? 0) < 10}
+          disabled={page >= Math.max(1, Math.ceil((data?.total ?? 0) / (data?.limit ?? 10)))}
           className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-gray-700 dark:text-gray-300"
         >
           Next

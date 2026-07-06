@@ -8,6 +8,8 @@ export interface AdminUser {
   role: UserRole;
   sellerStatus?: SellerStatus;
   shopName?: string;
+  paidOrderCount?: number;
+  lastPaidOrderAt?: string | null;
   createdAt: string;
   isActive: boolean;
 }
@@ -38,6 +40,7 @@ export interface AdminSubOrder {
   status: string;
   subtotal: number;
   itemCount: number;
+  createdAt?: string;
 }
 
 export interface AdminOrder {
@@ -46,5 +49,6 @@ export interface AdminOrder {
   customerEmail: string;
   status: string;
   totalAmount: number;
+  createdAt: string;
   subOrders: AdminSubOrder[];
 }

@@ -2,11 +2,14 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AppProviders } from "../providers/AppProviders";
-import { Geist } from "next/font/google";
 import { cn } from "@/src/libs/utils";
 import { LayoutWrapper } from "@/src/components/LayoutWrapper";
+import type { CSSProperties } from "react";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
+const rootFontVars: CSSProperties = {
+  ["--font-sans" as string]: '"Inter", "Segoe UI", Arial, sans-serif',
+  ["--font-geist-mono" as string]: '"SFMono-Regular", Consolas, "Liberation Mono", monospace',
+};
 
 export const metadata: Metadata = {
   title: "Multivendor E-commerce",
@@ -22,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
+    <html lang="en" suppressHydrationWarning className={cn("font-sans")} style={rootFontVars}>
       <body>
         <AppProviders>
           <LayoutWrapper>

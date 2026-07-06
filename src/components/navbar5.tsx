@@ -3,8 +3,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { useEffect, useState } from "react";
-import { MenuIcon, Moon, Sun, ShoppingCart } from "lucide-react"; // ShoppingCart 
+import { MenuIcon, Moon, Sun, ShoppingCart } from "lucide-react"; // ShoppingCart
 import Link from "next/link";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -33,34 +32,30 @@ import {
   SheetTrigger,
 } from "@/src/components/ui/sheet";
 import { cn } from "@/src/libs/utils";
-import { useTheme } from "next-themes";
 import { useMe } from "@/src/features/auth/loginsstanstack/useMe";
 import { useCart } from "@/src/features/cart/useCart";
 import { authService, type User } from "@/src/services/auth.service";
+import { useTheme } from "@/src/providers/ThemeProvider";
 
 interface Navbar5Props {
   className?: string;
 }
 
 export function ModeToggle() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const { resolvedTheme, setTheme } = useTheme();
 
   return (
     <Button
       variant="outline"
       size="icon"
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      disabled={!mounted}
+      onClick={() =>
+        setTheme((resolvedTheme ?? "light") === "dark" ? "light" : "dark")
+      }
       aria-label="Toggle theme"
     >
-      {!mounted ? (
+      {!resolvedTheme ? (
         <span className="h-5 w-5" aria-hidden="true" />
-      ) : theme === "dark" ? (
+      ) : resolvedTheme === "dark" ? (
         <Sun className="h-5 w-5" />
       ) : (
         <Moon className="h-5 w-5" />
@@ -85,10 +80,12 @@ const Navbar5 = ({ className }: Navbar5Props) => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: user, isLoading } = useMe();
-  
+
   // tanstack query use kore cart items fetch kora hocche
   const { data: cart } = useCart();
-  const totalItems = cart?.items?.reduce((acc: number, item: any) => acc + item.quantity, 0) || 0;
+  const totalItems =
+    cart?.items?.reduce((acc: number, item: any) => acc + item.quantity, 0) ||
+    0;
 
   const logoutMutation = useMutation({
     mutationFn: authService.logout,
@@ -133,7 +130,12 @@ const Navbar5 = ({ className }: Navbar5Props) => {
   ];
 
   return (
-    <section className={cn("py-4 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 sticky top-0 z-50", className)}>
+    <section
+      className={cn(
+        "py-4 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 sticky top-0 z-50",
+        className,
+      )}
+    >
       <div className="container mx-auto px-4">
         <nav className="flex items-center justify-between">
           {/* Logo */}
@@ -144,7 +146,7 @@ const Navbar5 = ({ className }: Navbar5Props) => {
               alt="Logo"
             />
             <span className="text-lg font-semibold tracking-tighter">
-              Bazaari 
+              Bazaari
             </span>
           </Link>
 
@@ -182,19 +184,30 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                   Products
                 </NavigationMenuLink>
               </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  href="/seller/apply"
+                  className={navigationMenuTriggerStyle()}
+                >
+                  Seller Application
+                </NavigationMenuLink>
+              </NavigationMenuItem>
 
               {/* dynamic routes based on role */}
               {user && (
                 <NavigationMenuItem>
                   <NavigationMenuLink
                     href={
-                      user.role === "ADMIN" 
-                        ? "/admin" 
-                        : user.role === "SELLER" 
-                        ? "/seller" 
-                        : "/orders"
+                      user.role === "ADMIN"
+                        ? "/admin"
+                        : user.role === "SELLER"
+                          ? "/seller"
+                          : "/orders"
                     }
-                    className={cn(navigationMenuTriggerStyle(), "font-medium text-primary")}
+                    className={cn(
+                      navigationMenuTriggerStyle(),
+                      "font-medium text-primary",
+                    )}
                   >
                     {user.role === "ADMIN" && "Admin Panel"}
                     {user.role === "SELLER" && "Seller Dashboard"}
@@ -247,7 +260,12 @@ const Navbar5 = ({ className }: Navbar5Props) => {
           {/* Mobile Sheet Wrapper */}
           <div className="flex items-center gap-4 lg:hidden">
             {/*  Mobile view Cart Badge */}
-            <Button asChild variant="outline" size="icon" className="relative mr-2">
+            <Button
+              asChild
+              variant="outline"
+              size="icon"
+              className="relative mr-2"
+            >
               <Link href="/cart">
                 <ShoppingCart className="h-4 w-4" />
                 {totalItems > 0 && (
@@ -274,7 +292,7 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                         alt="Logo"
                       />
                       <span className="text-lg font-semibold tracking-tighter">
-                        Bazaari 
+                        Bazaari
                       </span>
                     </Link>
                   </SheetTitle>
@@ -307,23 +325,26 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>
-                  
+
                   {/* Mobile Links List */}
                   <div className="flex flex-col gap-6 my-2">
                     <Link href="/shoP/products" className="font-medium">
                       Products
                     </Link>
+                    <Link href="/seller/apply" className="font-medium">
+                      Seller Application
+                    </Link>
 
                     {/* dynamic routes based on role mobile */}
                     {user && (
-                      <Link 
+                      <Link
                         href={
-                          user.role === "ADMIN" 
-                            ? "/admin" 
-                            : user.role === "SELLER" 
-                            ? "/seller" 
-                            : "/orders"
-                        } 
+                          user.role === "ADMIN"
+                            ? "/admin"
+                            : user.role === "SELLER"
+                              ? "/seller"
+                              : "/orders"
+                        }
                         className="font-semibold text-primary"
                       >
                         {user.role === "ADMIN" && "Admin Panel "}

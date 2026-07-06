@@ -15,12 +15,20 @@ export default function AdminUsersPage() {
   const [activeTab, setActiveTab] = useState<UserRole | undefined>(undefined);
   const [page, setPage] = useState(1);
   const { data, isLoading } = useAdminUsers(activeTab, page);
+  const pageSize = data?.limit ?? 10;
+  const totalPages = data ? Math.max(1, Math.ceil(data.total / pageSize)) : 1;
 
   return (
     <div>
       <h1 className="mb-4 text-2xl font-bold text-gray-900 dark:text-gray-50">
         Users & Sellers
       </h1>
+      <p className="mb-6 max-w-3xl text-sm text-gray-600 dark:text-gray-400">
+        Seller applications appear in this table as soon as a user submits them, even if their
+        account role is still <span className="font-medium text-gray-900 dark:text-gray-100">CUSTOMER</span>.
+        Use the seller status column to approve or reject pending requests.
+        Customers who complete a successful payment now show a payment badge in the last column.
+      </p>
 
       <div className="mb-6 flex gap-2 border-b border-gray-100 dark:border-gray-800">
         {tabs.map((tab) => (
@@ -52,6 +60,7 @@ export default function AdminUsersPage() {
                 <th className="px-4 py-3">Role</th>
                 <th className="px-4 py-3">Seller Status</th>
                 <th className="px-4 py-3">Account</th>
+                <th className="px-4 py-3">Customer Payments</th>
               </tr>
             </thead>
             <tbody>
@@ -73,12 +82,15 @@ export default function AdminUsersPage() {
         </button>
         <button
           onClick={() => setPage((p) => p + 1)}
-          disabled={(data?.items.length ?? 0) < 10}
+          disabled={page >= totalPages}
           className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-gray-700 dark:text-gray-300"
         >
           Next
         </button>
       </div>
+      <p className="mt-2 text-right text-xs text-gray-500 dark:text-gray-400">
+        Page {page} of {totalPages}
+      </p>
     </div>
   );
 }

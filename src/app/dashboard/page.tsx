@@ -116,12 +116,16 @@ export default function DashboardPage() {
   const orders = ordersResponse?.data?.orders ?? [];
 
   const inventoryValue = useMemo(
-    () => products.reduce((sum, product) => sum + product.price * product.stock, 0),
+    () =>
+      products.reduce((sum: number, product: { price: number; stock: number }) => sum + product.price * product.stock, 0),
     [products]
   );
 
   const averagePrice = useMemo(
-    () => (products.length ? products.reduce((sum, product) => sum + product.price, 0) / products.length : 0),
+    () =>
+      (products.length
+        ? products.reduce((sum: number, product: { price: number }) => sum + product.price, 0) / products.length
+        : 0),
     [products]
   );
 

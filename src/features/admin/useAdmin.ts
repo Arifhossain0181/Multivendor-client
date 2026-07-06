@@ -4,6 +4,7 @@ import {
   SellerStatus,
   UserRole,
 } from "../../app/dashboard/admin/comPonents/types.admin";
+import { AxiosError } from "axios";
 import { toast } from "sonner";
 import { api } from "@/src/lib/axios";
 
@@ -84,6 +85,14 @@ export function useDeleteProduct() {
     mutationFn: deleteProduct,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
+      toast.success("Product deleted");
+    },
+    onError: (error) => {
+      const message =
+        error instanceof AxiosError
+          ? (error.response?.data?.error as string | undefined) ?? "Failed to delete product"
+          : "Failed to delete product";
+      toast.error(message);
     },
   });
 }

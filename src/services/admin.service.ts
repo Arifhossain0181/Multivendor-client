@@ -18,7 +18,7 @@ export const adminService = {
   getUsers: async (
     role?: UserRole,
     page = 1
-  ): Promise<{ items: AdminUser[]; total: number }> => {
+  ): Promise<{ items: AdminUser[]; total: number; page: number; limit: number }> => {
     const { data } = await api.get("/admin/users", { params: { role, page } });
     return data;
   },
@@ -46,7 +46,7 @@ export const adminService = {
   getProducts: async (
     status?: string,
     page = 1
-  ): Promise<{ items: AdminProduct[]; total: number }> => {
+  ): Promise<{ items: AdminProduct[]; total: number; page: number; limit: number }> => {
     const { data } = await api.get("/admin/products", { params: { status, page } });
     return data;
   },
@@ -63,7 +63,7 @@ export const adminService = {
 
   getOrders: async (
     page = 1
-  ): Promise<{ items: AdminOrder[]; total: number }> => {
+  ): Promise<{ items: AdminOrder[]; total: number; page: number; limit: number }> => {
     const { data } = await api.get("/admin/orders", { params: { page } });
     return data;
   },

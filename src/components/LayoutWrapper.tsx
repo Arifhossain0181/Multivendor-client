@@ -10,9 +10,11 @@ const NO_LAYOUT_ROUTES = ["/dashboard", "/admin", "/seller", "/customers"];
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  const hideLayout = NO_LAYOUT_ROUTES.some((route) =>
-    pathname.startsWith(route)
-  );
+  const hideLayout =
+    pathname === "/seller" ||
+    NO_LAYOUT_ROUTES.filter((route) => route !== "/seller").some((route) =>
+      pathname.startsWith(route),
+    );
 
   return (
     <>

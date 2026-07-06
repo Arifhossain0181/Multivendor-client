@@ -38,6 +38,7 @@ const STATUS_STYLE: Record<string, string> = {
   PAID: "bg-green-100 text-green-700 border-green-200",
   PENDING_PAYMENT: "bg-yellow-100 text-yellow-700 border-yellow-200",
   PAYMENT_FAILED_STOCK: "bg-red-100 text-red-700 border-red-200",
+  PENDING: "bg-amber-100 text-amber-700 border-amber-200",
   CONFIRMED: "bg-blue-100 text-blue-700 border-blue-200",
   SHIPPED: "bg-indigo-100 text-indigo-700 border-indigo-200",
   DELIVERED: "bg-emerald-100 text-emerald-700 border-emerald-200",
@@ -48,6 +49,7 @@ const STATUS_LABEL: Record<string, string> = {
   PAID: "Paid",
   PENDING_PAYMENT: "Pending Payment",
   PAYMENT_FAILED_STOCK: "Payment Failed",
+  PENDING: "Awaiting Seller Confirmation",
   CONFIRMED: "Confirmed",
   SHIPPED: "Shipped",
   DELIVERED: "Delivered",
@@ -153,6 +155,10 @@ export default function OrderDetailsPage() {
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mt-1 font-mono">
                   #{order.id.slice(0, 16)}...
                 </h1>
+                <p className="mt-2 text-sm text-gray-500">
+                  Payment and fulfillment are tracked separately. A paid order can still show
+                  seller packages as awaiting confirmation until the seller starts processing them.
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 <span className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold border ${STATUS_STYLE[order.status] || "bg-gray-100 text-gray-500"}`}>
@@ -209,6 +215,10 @@ export default function OrderDetailsPage() {
             {/* Sub-orders (Sellers breakdown) */}
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-4">Sellers &amp; Items Breakdown</h2>
+              <p className="mb-4 text-sm text-gray-500">
+                Package status reflects seller fulfillment, not payment. Payment is complete when
+                the order status shows Paid.
+              </p>
               <div className="space-y-6">
                 {order.subOrders.map((subOrder, subIdx) => (
                   <div key={subOrder.id} className="border border-gray-100 rounded-2xl overflow-hidden shadow-xs">
