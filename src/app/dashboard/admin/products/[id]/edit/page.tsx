@@ -59,7 +59,7 @@ function EditProductForm({
       price: 0,
       variants: [],
     },
-  });E
+  });
 
   const { fields, append, remove } = useFieldArray({
     control,
