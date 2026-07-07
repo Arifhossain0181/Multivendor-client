@@ -60,6 +60,10 @@ export function useProduct(id: ProductId) {
     });
 }
 
+export function useAdminProduct(id: ProductId) {
+  return useProduct(id);
+}
+
 export function useCreateProduct() {
   const queryClient = useQueryClient();
   return useMutation({

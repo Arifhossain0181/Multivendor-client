@@ -18,6 +18,15 @@ export const productSchema = z.object({
     .max(5, "Maximum 5 images allowed"),
   variants: z.array(variantSchema).min(1, "At least 1 variant required"),
 });
+export const editProductSchema = z.object({
+  title: z.string().min(3, "Title must be at least 3 characters").max(120),
+  description: z.string().min(10, "Description must be at least 10 characters").max(2000),
+  categoryId: z.string().min(1, "Please select a category"),
+  price: z.coerce.number().positive("Price must be greater than 0"),
+  variants: z.array(variantSchema).min(1, "At least one variant is required"),
+});
+
+export type EditProductInput = z.infer<typeof editProductSchema>;
 
 export type ProductFormValues = z.infer<typeof productSchema>;
 export type VariantFormValues = z.infer<typeof variantSchema>;

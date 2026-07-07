@@ -8,6 +8,14 @@ export type ProductListParams = {
 
 export type ProductVariant = {
     id: string;
+    name?: string;
+    label?: string;
+    sku?: string;
+    price?: number;
+    availableQty?: number;
+    inventory?: {
+        availableQty?: number;
+    };
 };
 
 export type Product = {
@@ -15,8 +23,10 @@ export type Product = {
     name: string;
     price: number;
     imageUrl: string;
+    imageUrls?: string[];
     description: string;
     stock: number;
+    categoryId?: string;
     variants?: ProductVariant[];
 };
 
