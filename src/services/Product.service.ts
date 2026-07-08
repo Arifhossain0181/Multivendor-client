@@ -28,10 +28,19 @@ export type Product = {
     stock: number;
     categoryId?: string;
     variants?: ProductVariant[];
+    viewCount?: number;
+    reviewCount?: number;
+    averageRating?: number;
+    sizes?: string[];
+    colors?: string[];
 };
 
 export type ProductListResponse = {
     data: Product[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    totalPages?: number;
 };
 
 export type ProductDetailsResponse = Product;

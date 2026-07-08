@@ -58,7 +58,7 @@ export function useAdminProducts(status?: string, page = 1) {
 export function useUpdateProductStatus() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ productId, status }: { productId: string; status: "ACTIVE" | "BLOCKED" }) =>
+    mutationFn: ({ productId, status }: { productId: string; status: "DRAFT" | "ACTIVE" | "BLOCKED" }) =>
       adminService.updateProductStatus(productId, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "products"] });

@@ -1,10 +1,8 @@
 import "./globals.css";
-import { Navbar5 } from "../components/navbar5";
 
 export default function HomePage() {
   return (
     <main>
-      <Navbar5 />
       <section className="container py-16">
         <h1 className="text-4xl font-semibold tracking-tight">
           Multivendor marketplace

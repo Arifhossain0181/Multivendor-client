@@ -53,7 +53,7 @@ export const adminService = {
 
   updateProductStatus: async (
     productId: string,
-    status: "ACTIVE" | "BLOCKED"
+    status: "DRAFT" | "ACTIVE" | "BLOCKED"
   ): Promise<AdminProduct> => {
     const { data } = await api.patch(`/admin/products/${productId}/status`, {
       status,

@@ -23,7 +23,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/src/components/ui/tooltip"
-import { LayoutDashboard, ShoppingCart, Package, ListOrdered, PanelLeftIcon } from "lucide-react"
+import { LayoutDashboard, ShoppingCart, Package, ListOrdered, PanelLeftIcon, Plus, Home } from "lucide-react"
 import { useMe } from "@/src/features/auth/loginsstanstack/useMe"
 import { adminNavItems } from "@/src/app/dashboard/admin/comPonents/AdminSidebar"
 
@@ -576,10 +576,11 @@ function SidebarMenuSkeleton({
 }: React.ComponentProps<"div"> & {
   showIcon?: boolean
 }) {
-  // Random width between 50 to 90%.
-  const [width] = React.useState(() => {
-    return `${Math.floor(Math.random() * 40) + 50}%`
-  })
+  const id = React.useId()
+  const widthSeed = id
+    .split("")
+    .reduce((sum, char) => sum + char.charCodeAt(0), 0)
+  const width = `${50 + (widthSeed % 41)}%`
 
   return (
     <div
@@ -675,8 +676,10 @@ function AppSidebar() {
   ]
 
   const sellerNavItems = [
+    { title: "Home", href: "/", icon: Home },
     { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { title: "Add Products", href: "/dashboard/add-products", icon: Package },
+    { title: "My Products", href: "/dashboard/products", icon: Package },
+    { title: "Add Product", href: "/dashboard/add-products", icon: Plus },
   ]
 
   const isAdmin = user?.role === "ADMIN"

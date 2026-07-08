@@ -16,14 +16,17 @@ export function useLogin() {
    return useMutation({
     mutationFn: (payload: LoginInput) => authService.login(payload),
     onSuccess: (user) => {
-        toast.success(`Welcome back, ${user.name}!`);
         queryClient.setQueryData(["me"], user);
-           toast.success(`Welcome back, ${user.name}!`);
-        router.push("/");
+        toast.success(`Welcome back, ${user.name}!`);
 
-         if (user.role === "ADMIN") router.push("/admin");
-      else if (user.role === "SELLER") router.push("/seller");
-      else router.push("/shoP/products");
+        const destination =
+          user.role === "ADMIN"
+            ? "/dashboard/admin"
+            : user.role === "SELLER"
+              ? "/seller"
+              : "/shoP/products";
+
+        router.replace(destination);
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Login failed. Please try again.");

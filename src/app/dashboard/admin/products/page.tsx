@@ -19,8 +19,7 @@ const filters: Array<{ label: string; value: string | undefined }> = [
   { label: "Blocked", value: "BLOCKED" },
 ];
 
-// NEW — status dropdown e only moderation-supported options thakbe
-const statusOptions: Array<Exclude<AdminProduct["status"], "DRAFT">> = ["ACTIVE", "BLOCKED"];
+const statusOptions: AdminProduct["status"][] = ["DRAFT", "ACTIVE", "BLOCKED"];
 
 function StatusChip({ status }: { status: AdminProduct["status"] }) {
   const tone =
@@ -47,7 +46,7 @@ export default function AdminProductsPage() {
   // NEW — dropdown theke status change handler
   const handleStatusChange = (
     productId: string,
-    newStatus: Exclude<AdminProduct["status"], "DRAFT">
+    newStatus: AdminProduct["status"]
   ) => {
     updateStatus.mutate(
       { productId, status: newStatus },
@@ -164,29 +163,23 @@ export default function AdminProductsPage() {
                   <td className="px-4 py-3">
                     <div className="flex flex-col gap-1">
                       <StatusChip status={product.status} />
-                      {product.status === "DRAFT" ? (
-                        <p className="text-[11px] text-gray-400">
-                          Draft items are visible here, but only ACTIVE and BLOCKED are editable.
-                        </p>
-                      ) : (
-                        <select
-                          value={product.status}
-                          onChange={(e) =>
-                            handleStatusChange(
-                              product.id,
-                              e.target.value as Exclude<AdminProduct["status"], "DRAFT">
-                            )
-                          }
-                          disabled={updateStatus.isPending}
-                          className="rounded-md border border-gray-200 bg-transparent px-2 py-1 text-xs outline-none focus:border-cyan-500 dark:border-gray-700 dark:text-gray-200"
-                        >
-                          {statusOptions.map((opt) => (
-                            <option key={opt} value={opt}>
-                              {opt}
-                            </option>
-                          ))}
-                        </select>
-                      )}
+                      <select
+                        value={product.status}
+                        onChange={(e) =>
+                          handleStatusChange(
+                            product.id,
+                            e.target.value as AdminProduct["status"]
+                          )
+                        }
+                        disabled={updateStatus.isPending}
+                        className="rounded-md border border-gray-200 bg-transparent px-2 py-1 text-xs outline-none focus:border-cyan-500 dark:border-gray-700 dark:text-gray-200"
+                      >
+                        {statusOptions.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </td>
                   <td className="px-4 py-3">

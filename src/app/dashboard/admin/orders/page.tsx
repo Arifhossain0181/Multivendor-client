@@ -115,124 +115,144 @@ export default function AdminOrdersPage() {
             Order Feed
           </h2>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Each card shows the master order, payment state, and seller-level breakdown.
+            Every master order and its seller-level sub-orders in one table.
           </p>
         </div>
 
         {isLoading ? (
           <div className="space-y-4 p-5">
-            <div className="h-44 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800" />
-            <div className="h-44 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800" />
-            <div className="h-44 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800" />
+            <div className="h-12 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800" />
+            <div className="h-12 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800" />
+            <div className="h-12 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800" />
           </div>
         ) : orders.length ? (
-          <div className="space-y-4 p-5">
-            {orders.map((order) => {
-              const paidAt = formatDate(order.createdAt);
-              const totalItems = order.subOrders.reduce((sum, subOrder) => sum + subOrder.itemCount, 0);
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1100px] text-left text-sm">
+              <thead className="bg-gray-50 text-gray-500 dark:bg-gray-900/80 dark:text-gray-400">
+                <tr>
+                  <th className="px-5 py-3 font-medium">Order ID</th>
+                  <th className="px-5 py-3 font-medium">Customer</th>
+                  <th className="px-5 py-3 font-medium">Email</th>
+                  <th className="px-5 py-3 font-medium">Order Status</th>
+                  <th className="px-5 py-3 font-medium">Created</th>
+                  <th className="px-5 py-3 font-medium">Total Amount</th>
+                  <th className="px-5 py-3 font-medium">Seller</th>
+                  <th className="px-5 py-3 font-medium">Seller Status</th>
+                  <th className="px-5 py-3 font-medium">Subtotal</th>
+                  <th className="px-5 py-3 font-medium">Items</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                {orders.map((order) => {
+                  const rowSpan = order.subOrders.length || 1;
+                  const createdAt = formatDate(order.createdAt);
 
-              return (
-                <article
-                  key={order.id}
-                  className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_8px_30px_rgb(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:shadow-lg dark:border-gray-800 dark:bg-gray-950/50"
-                >
-                  <div className="border-b border-gray-200 px-5 py-4 dark:border-gray-800">
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                      <div className="space-y-2">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                            Order #{order.id.slice(0, 8)}
-                          </span>
+                  if (order.subOrders.length === 0) {
+                    return (
+                      <tr key={order.id} className="transition hover:bg-gray-50/70 dark:hover:bg-gray-900/60">
+                        <td className="px-5 py-4 font-medium text-gray-900 dark:text-gray-50">
+                          #{order.id.slice(0, 8)}
+                        </td>
+                        <td className="px-5 py-4 text-gray-900 dark:text-gray-50">
+                          {order.customerName}
+                        </td>
+                        <td className="px-5 py-4 text-gray-500 dark:text-gray-400">
+                          {order.customerEmail}
+                        </td>
+                        <td className="px-5 py-4">
                           <span
-                            className={`rounded-full px-3 py-1 text-xs font-medium ${statusTone[order.status] ?? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"}`}
+                            className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${statusTone[order.status] ?? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"}`}
                           >
                             {order.status.replace(/_/g, " ")}
                           </span>
-                        </div>
+                        </td>
+                        <td className="px-5 py-4 text-gray-700 dark:text-gray-200">
+                          {createdAt}
+                        </td>
+                        <td className="px-5 py-4 font-medium text-gray-900 dark:text-gray-50">
+                          {formatCurrency(order.totalAmount)}
+                        </td>
+                        <td className="px-5 py-4 text-gray-400 dark:text-gray-500" colSpan={4}>
+                          No sub-orders
+                        </td>
+                      </tr>
+                    );
+                  }
 
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-50">
+                  return order.subOrders.map((subOrder, index) => (
+                    <tr
+                      key={subOrder.id}
+                      className="transition hover:bg-gray-50/70 dark:hover:bg-gray-900/60"
+                    >
+                      {index === 0 && (
+                        <>
+                          <td
+                            className="px-5 py-4 align-top font-medium text-gray-900 dark:text-gray-50"
+                            rowSpan={rowSpan}
+                          >
+                            #{order.id.slice(0, 8)}
+                          </td>
+                          <td
+                            className="px-5 py-4 align-top text-gray-900 dark:text-gray-50"
+                            rowSpan={rowSpan}
+                          >
                             {order.customerName}
-                          </h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                          </td>
+                          <td
+                            className="px-5 py-4 align-top text-gray-500 dark:text-gray-400"
+                            rowSpan={rowSpan}
+                          >
                             {order.customerEmail}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="grid gap-2 sm:grid-cols-3">
-                        <div className="rounded-xl bg-slate-50 px-4 py-3 dark:bg-slate-800/60">
-                          <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                            Total amount
-                          </p>
-                          <p className="mt-1 text-base font-semibold text-gray-900 dark:text-gray-50">
+                          </td>
+                          <td className="px-5 py-4 align-top" rowSpan={rowSpan}>
+                            <span
+                              className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${statusTone[order.status] ?? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"}`}
+                            >
+                              {order.status.replace(/_/g, " ")}
+                            </span>
+                          </td>
+                          <td
+                            className="px-5 py-4 align-top text-gray-700 dark:text-gray-200"
+                            rowSpan={rowSpan}
+                          >
+                            {createdAt}
+                          </td>
+                          <td
+                            className="px-5 py-4 align-top font-medium text-gray-900 dark:text-gray-50"
+                            rowSpan={rowSpan}
+                          >
                             {formatCurrency(order.totalAmount)}
+                          </td>
+                        </>
+                      )}
+                      <td className="px-5 py-4">
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-gray-50">
+                            {subOrder.sellerName}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Sub-order {subOrder.id.slice(0, 8)}
                           </p>
                         </div>
-                        <div className="rounded-xl bg-slate-50 px-4 py-3 dark:bg-slate-800/60">
-                          <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                            Created
-                          </p>
-                          <p className="mt-1 text-base font-semibold text-gray-900 dark:text-gray-50">
-                            {paidAt}
-                          </p>
-                        </div>
-                        <div className="rounded-xl bg-slate-50 px-4 py-3 dark:bg-slate-800/60">
-                          <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                            Sub-orders
-                          </p>
-                          <p className="mt-1 text-base font-semibold text-gray-900 dark:text-gray-50">
-                            {order.subOrders.length} / {totalItems} items
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[720px] text-left text-sm">
-                      <thead className="bg-gray-50 text-gray-500 dark:bg-gray-900/80 dark:text-gray-400">
-                        <tr>
-                          <th className="px-5 py-3 font-medium">Seller</th>
-                          <th className="px-5 py-3 font-medium">Status</th>
-                          <th className="px-5 py-3 font-medium">Subtotal</th>
-                          <th className="px-5 py-3 font-medium">Items</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                        {order.subOrders.map((subOrder) => (
-                          <tr key={subOrder.id} className="transition hover:bg-gray-50/70 dark:hover:bg-gray-900/60">
-                            <td className="px-5 py-4">
-                              <div>
-                                <p className="font-medium text-gray-900 dark:text-gray-50">
-                                  {subOrder.sellerName}
-                                </p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
-                                  Seller sub-order {subOrder.id.slice(0, 8)}
-                                </p>
-                              </div>
-                            </td>
-                            <td className="px-5 py-4">
-                              <span
-                                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${subStatusTone[subOrder.status] ?? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"}`}
-                              >
-                                {subOrder.status}
-                              </span>
-                            </td>
-                            <td className="px-5 py-4 font-medium text-gray-900 dark:text-gray-50">
-                              {formatCurrency(subOrder.subtotal)}
-                            </td>
-                            <td className="px-5 py-4 text-gray-700 dark:text-gray-200">
-                              {subOrder.itemCount}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </article>
-              );
-            })}
+                      </td>
+                      <td className="px-5 py-4">
+                        <span
+                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${subStatusTone[subOrder.status] ?? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"}`}
+                        >
+                          {subOrder.status}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 font-medium text-gray-900 dark:text-gray-50">
+                        {formatCurrency(subOrder.subtotal)}
+                      </td>
+                      <td className="px-5 py-4 text-gray-700 dark:text-gray-200">
+                        {subOrder.itemCount}
+                      </td>
+                    </tr>
+                  ));
+                })}
+              </tbody>
+            </table>
           </div>
         ) : (
           <div className="flex min-h-[320px] items-center justify-center px-6 py-14 text-center">

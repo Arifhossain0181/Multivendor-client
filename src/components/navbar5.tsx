@@ -199,7 +199,7 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                   <NavigationMenuLink
                     href={
                       user.role === "ADMIN"
-                        ? "/admin"
+                        ? "/dashboard/admin"
                         : user.role === "SELLER"
                           ? "/seller"
                           : "/orders"
@@ -340,7 +340,7 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                       <Link
                         href={
                           user.role === "ADMIN"
-                            ? "/admin"
+                            ? "/dashboard/admin"
                             : user.role === "SELLER"
                               ? "/seller"
                               : "/orders"

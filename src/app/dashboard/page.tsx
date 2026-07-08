@@ -81,6 +81,9 @@ function MetricCard({ label, value, note, icon: Icon, tone = "default" }: Metric
   );
 }
 
+
+
+
 export default function DashboardPage() {
   const { data: user, isLoading: userLoading } = useMe();
   const role = (user?.role ?? "USER") as DashboardRole;
@@ -331,6 +334,8 @@ export default function DashboardPage() {
           <MetricCard key={card.label} {...card} />
         ))}
       </div>
+
+
 
       <div className="grid gap-6 xl:grid-cols-3">
         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm xl:col-span-2">

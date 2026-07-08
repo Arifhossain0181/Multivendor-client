@@ -47,9 +47,9 @@ export default function LoginPage() {
       queryClient.setQueryData(["me"], user);
       toast.success(`Welcome, ${user.name}`);
 
-      if (user.role === "ADMIN") router.push("/admin");
+      if (user.role === "ADMIN") router.push("/dashboard/admin");
       else if (user.role === "SELLER") router.push("/seller");
-      else router.push("/");
+      else router.push("/shoP/products");
     },
 
     onError: (error: any) => {
