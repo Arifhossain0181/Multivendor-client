@@ -7,7 +7,7 @@ import {
   SellerStatus,
   UserRole,
 } from "../app/dashboard/admin/comPonents/types.admin";
-import { api} from "../lib/axios";
+import { api } from "../lib/axios";
 
 export const adminService = {
   getStats: async (): Promise<AdminStats> => {
@@ -68,3 +68,31 @@ export const adminService = {
     return data;
   },
 };
+export async function getAdminCategories({ page = 1, limit = 10 }: { page?: number; limit?: number } = {}) {
+  const { data } = await api.get("/admin/categories", {
+    params: { page, limit },
+  });
+  return data; // { items: [{ id, name, slug, description, productCount, createdAt }], total, page, limit }
+}
+ 
+// --------  category --------
+export async function createCategory({ name, description, imageUrl }: { name: string; description: string; imageUrl?: string }) {
+  const { data } = await api.post("/admin/categories", {
+    name,
+    description,
+    imageUrl,
+  });
+  return data;
+}
+ 
+// -------- category update --------
+export async function updateCategory(categoryId: string, payload: { name?: string; description?: string; imageUrl?: string }) {
+  const { data } = await api.patch(`/admin/categories/${categoryId}`, payload);
+  return data;
+}
+ 
+// -------- category delete --------
+export async function deleteCategory(categoryId: string) {
+  const { data } = await api.delete(`/admin/categories/${categoryId}`);
+  return data;
+}

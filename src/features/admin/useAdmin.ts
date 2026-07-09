@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { adminService } from "../../services/admin.service";
+import { adminService, createCategory, deleteCategory, updateCategory } from "../../services/admin.service";
 import {
   SellerStatus,
   UserRole,
@@ -96,3 +96,41 @@ export function useDeleteProduct() {
     },
   });
 }
+
+// --------  category --------
+export function useCreateCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createCategory,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "categories"] });
+     
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+    },
+  });
+}
+ 
+// -------- category update --------
+export function useUpdateCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ categoryId, payload }) => updateCategory(categoryId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "categories"] });
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+    },
+  });
+}
+ 
+// -------- category delete --------
+export function useDeleteCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteCategory,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "categories"] });
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+    },
+  });
+}
+ 
