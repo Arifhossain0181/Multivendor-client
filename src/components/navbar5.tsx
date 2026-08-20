@@ -5,6 +5,7 @@
 
 import { MenuIcon, Moon, Sun, ShoppingCart } from "lucide-react"; // ShoppingCart
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
@@ -43,6 +44,15 @@ interface Navbar5Props {
 
 export function ModeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      setMounted(true);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   return (
     <Button
@@ -53,7 +63,7 @@ export function ModeToggle() {
       }
       aria-label="Toggle theme"
     >
-      {!resolvedTheme ? (
+      {!mounted ? (
         <span className="h-5 w-5" aria-hidden="true" />
       ) : resolvedTheme === "dark" ? (
         <Sun className="h-5 w-5" />
@@ -182,6 +192,14 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                   className={navigationMenuTriggerStyle()}
                 >
                   Products
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  href="/module/blog"
+                  className={navigationMenuTriggerStyle()}
+                >
+                  Blog
                 </NavigationMenuLink>
               </NavigationMenuItem>
               <NavigationMenuItem>
@@ -330,6 +348,12 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                   <div className="flex flex-col gap-6 my-2">
                     <Link href="/shoP/products" className="font-medium">
                       Products
+                    </Link>
+                    <Link href="/shoP/products" className="font-medium">
+                      Products
+                    </Link>
+                    <Link href="/module/blog" className="font-medium">
+                      Blog
                     </Link>
                     <Link href="/seller/apply" className="font-medium">
                       Seller Application

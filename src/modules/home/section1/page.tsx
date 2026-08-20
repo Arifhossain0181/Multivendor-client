@@ -34,7 +34,7 @@ function StarRating({ rating }: { rating: number }) {
   return (
     <span className="relative inline-flex" aria-label={`${rating} out of 5 stars`}>
       {/* background (empty) stars */}
-      <span className="flex gap-0.5 text-slate-200">
+      <span className="flex gap-0.5 text-muted-foreground">
         {Array.from({ length: 5 }).map((_, i) => (
           <StarIcon key={i} />
         ))}
@@ -62,7 +62,7 @@ function StarIcon() {
 
 export default function TrustBadges() {
   return (
-    <section className="w-full bg-white">
+    <section className="w-full bg-white dark:bg-background transition-colors duration-500">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
         <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
           <motion.p
@@ -70,7 +70,7 @@ export default function TrustBadges() {
             whileInView="show"
             viewport={{ once: true, amount: 0.6 }}
             variants={fadeUp}
-            className="text-center text-base font-medium text-slate-900 sm:text-lg lg:text-left"
+            className="text-center text-base font-medium text-foreground sm:text-lg lg:text-left"
           >
             Top Rated Choice on Trusted Review Websites
           </motion.p>
@@ -86,11 +86,11 @@ export default function TrustBadges() {
                 custom={{ delay: 0.1 + i * 0.1 }}
                 className="flex flex-col items-center gap-1.5"
               >
-                <span className="whitespace-nowrap text-sm font-semibold text-slate-900 sm:text-base">
+                <span className="whitespace-nowrap text-sm font-semibold text-foreground sm:text-base">
                   {p.name}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="text-xs font-semibold text-slate-700 sm:text-sm">{p.rating}</span>
+                  <span className="text-xs font-semibold text-foreground sm:text-sm">{p.rating}</span>
                   <StarRating rating={p.rating} />
                 </span>
               </motion.div>

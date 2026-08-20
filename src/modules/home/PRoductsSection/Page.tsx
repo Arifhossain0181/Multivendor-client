@@ -71,14 +71,14 @@ export default function AnimatedProducts() {
         className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4"
       >
         <div>
-          <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-gray-50 md:text-4xl">
+          <h2 className="text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
              Trending Products
           </h2>
-          <p className="mt-3 text-base text-gray-500 dark:text-gray-400">
-            Discover our trending products, carefully curated with premium animations for a seamless browsing experience.
+          <p className="mt-3 text-base text-muted-foreground">
+             Discover our trending products, carefully curated with premium animations for a seamless browsing experience.
           </p>
         </div>
-        <Link href="/products" className="text-sm font-bold text-blue-600 dark:text-cyan-400 hover:underline">
+        <Link href="/products" className="text-sm font-bold text-primary hover:underline">
           View All Products &rarr;
         </Link>
       </motion.div>
@@ -95,9 +95,9 @@ export default function AnimatedProducts() {
             key={product.id}
             variants={cardVariants}
             whileHover={{ y: -8, transition: { duration: 0.2 } }}
-            className="group relative flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all dark:border-gray-800 dark:bg-gray-900"
+             className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all"
           >
-            <div className="relative aspect-square w-full overflow-hidden bg-gray-50 dark:bg-gray-950">
+             <div className="relative aspect-square w-full overflow-hidden bg-muted dark:bg-muted/50">
               <Image
                 src={product.image || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop"}
                 alt={product.name}
@@ -107,11 +107,11 @@ export default function AnimatedProducts() {
 
               
               <motion.div 
-                className="absolute inset-0 bg-black/30 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
+                 className="absolute inset-0 bg-black/30 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
               >
                 <Link
                   href={`/products/${product.id}`}
-                  className="p-3 bg-white text-gray-900 rounded-full shadow-xl transform scale-70 group-hover:scale-100 transition-transform duration-300 hover:bg-gray-100"
+                  className="p-3 bg-white text-foreground rounded-full shadow-xl transform scale-70 group-hover:scale-100 transition-transform duration-300 hover:bg-gray-100"
                 >
                   <Eye size={20} />
                 </Link>
@@ -119,25 +119,25 @@ export default function AnimatedProducts() {
             </div>
 
             <div className="flex flex-1 flex-col p-5">
-              <span className="text-xs font-semibold text-blue-500 dark:text-cyan-400 uppercase tracking-widest mb-1">
+              <span className="text-xs font-semibold text-primary uppercase tracking-widest mb-1">
                 {product.category}
               </span>
               
               <Link href={`/products/${product.id}`}>
-                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 line-clamp-1 hover:text-blue-600 transition-colors">
+                <h3 className="text-lg font-bold text-foreground line-clamp-1 hover:text-primary transition-colors">
                   {product.name}
                 </h3>
               </Link>
 
               <div className="mt-1 flex items-center gap-0.5 text-amber-400">
                 {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
-                <span className="text-xs text-gray-400 ml-1.5">(4.9)</span>
+                <span className="text-xs text-muted-foreground ml-1.5">(4.9)</span>
               </div>
 
               <div className="mt-auto pt-5 flex items-center justify-between">
                 <div className="flex flex-col">
-                  <span className="text-xs text-gray-400 font-medium">Price</span>
-                  <span className="text-2xl font-black text-gray-900 dark:text-gray-50">
+                  <span className="text-xs text-muted-foreground font-medium">Price</span>
+                  <span className="text-2xl font-black text-foreground">
                     ৳{product.price.toLocaleString("bn-BD")}
                   </span>
                 </div>
@@ -145,7 +145,7 @@ export default function AnimatedProducts() {
                 <motion.button
                   whileTap={{ scale: 0.92 }}
                   disabled={product.stock <= 0}
-                  className="flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-3 text-sm font-bold text-white hover:bg-gray-800 dark:bg-blue-600 dark:hover:bg-blue-700 shadow-md shadow-gray-200 dark:shadow-none"
+                  className="flex items-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground hover:bg-primary/80 shadow-md shadow-muted dark:shadow-none"
                 >
                   <ShoppingCart size={16} />
                   <span>Cart</span>

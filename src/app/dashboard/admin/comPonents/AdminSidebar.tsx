@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, Package, ListOrdered, LucideIcon } from "lucide-react";
+import { LayoutDashboard, Users, Package, ListOrdered, Truck, Home, LucideIcon } from "lucide-react";
 
 export type AdminNavItem = {
   href: string;
@@ -11,13 +11,12 @@ export type AdminNavItem = {
 };
 
 export const adminNavItems: AdminNavItem[] = [
-  { href: "/", label: "Home", icon: LayoutDashboard },
+  { href: "/", label: "Home", icon: Home },
   { href: "/dashboard/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/admin/users", label: "Users & Sellers", icon: Users },
   { href: "/dashboard/admin/products", label: "Products", icon: Package },
   { href: "/dashboard/admin/orders", label: "Orders", icon: ListOrdered },
-  { href: "/dashboard/add-products", label: "Add Products", icon: Package },
-  { href: "/dashboard/admin/add-categories", label: "Add Categories", icon: Package },
+  { href: "/dashboard/admin/fulfillments", label: "Fulfillments", icon: Truck },
 ];
 
 export default function AdminSidebar() {

@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { motion } from "motion/react";
 import {
   FileStack,
@@ -13,7 +12,6 @@ import {
   Repeat,
   LucideIcon,
 } from "lucide-react";
-import Lenis from "lenis";
 
 //  Feature data — dui ta image thekei shob card ekshathe kora holo
 type Feature = {
@@ -74,26 +72,8 @@ const features: Feature[] = [
 ];
 
 export default function AdminFeaturesSection() {
-  // Lenis smooth scroll setup
-  useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.1,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-    });
-
-    function raf(time: number) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-    requestAnimationFrame(raf);
-
-    return () => {
-      lenis.destroy();
-    };
-  }, []);
-
   return (
-    <section className="bg-white px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+    <section className="bg-white dark:bg-background px-4 py-16 sm:px-6 sm:py-20 lg:px-8 transition-colors duration-500">
       <div className="mx-auto max-w-6xl">
         {/* Heading */}
         <motion.div
@@ -103,10 +83,10 @@ export default function AdminFeaturesSection() {
           transition={{ duration: 0.6 }}
           className="mx-auto max-w-3xl text-center"
         >
-          <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl lg:text-4xl">
+          <h2 className="text-2xl font-bold text-foreground sm:text-3xl lg:text-4xl">
             Streamline Marketplace Management with Robust Admin Features
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-sm text-gray-500 sm:text-base">
+          <p className="mx-auto mt-4 max-w-2xl text-sm text-muted-foreground sm:text-base">
             Our White label eCommerce marketplace platform is developed while
             considering business-level objectives. To run a multi vendor
             marketplace effortlessly, we offer a wide set of features for
@@ -136,20 +116,20 @@ export default function AdminFeaturesSection() {
                 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
                 whileHover={{ y: -4 }}
-                className="group rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md sm:p-7"
+                className="group rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md dark:hover:shadow-primary/5 sm:p-7"
               >
                 <motion.div
                   whileHover={{ scale: 1.1, rotate: 3 }}
                   transition={{ type: "spring", stiffness: 300, damping: 15 }}
-                  className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-rose-50 text-rose-500"
+                  className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-rose-500/10 text-rose-500 dark:bg-rose-500/20"
                 >
                   <Icon size={20} strokeWidth={1.8} />
                 </motion.div>
 
-                <h3 className="text-base font-semibold text-gray-900 sm:text-lg">
+                <h3 className="text-base font-semibold text-foreground sm:text-lg">
                   {feature.title}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-gray-500">
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   {feature.description}
                 </p>
               </motion.div>

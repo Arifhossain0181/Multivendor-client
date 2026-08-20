@@ -18,10 +18,10 @@ export default function HomePage() {
     <main className="max-w-6xl mx-auto px-6 py-14">
       {/* ---------- Hero ---------- */}
       <div className="text-center max-w-3xl mx-auto mb-12">
-        <h1 className="text-4xl sm:text-5xl font-bold leading-tight mb-5">
+        <h1 className="text-4xl sm:text-5xl font-bold leading-tight mb-5 text-foreground">
           Your Name - A Powerful Multivendor Marketplace Platform
         </h1>
-        <p className="text-gray-500 text-lg">
+        <p className="text-muted-foreground text-lg">
           Discover products from trusted sellers across every category — all in one place.
         </p>
       </div>

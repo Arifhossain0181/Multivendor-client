@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ChevronDown, Star, CreditCard, Award } from "lucide-react";
-import Lenis from "lenis";
 
 type AccordionItem = {
   title: string;
@@ -64,29 +63,13 @@ export default function BuyerSellerFeaturesSection() {
 
   const items = activeTab === "buyer" ? buyerFeatures : sellerFeatures;
 
-  // Lenis smooth scroll
-  useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.1,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-    });
-
-    function raf(time: number) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-    requestAnimationFrame(raf);
-
-    return () => lenis.destroy();
-  }, []);
-
   const handleTabChange = (tab: "buyer" | "seller") => {
     setActiveTab(tab);
     setOpenIndex(0); // tab change hole first item open thakbe
   };
 
   return (
-    <section className="overflow-hidden bg-white px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+    <section className="overflow-hidden bg-white dark:bg-background px-4 py-16 sm:px-6 sm:py-20 lg:px-8 transition-colors duration-500">
       <div className="mx-auto max-w-6xl">
         {/* Heading */}
         <motion.div
@@ -96,10 +79,10 @@ export default function BuyerSellerFeaturesSection() {
           transition={{ duration: 0.6 }}
           className="mx-auto max-w-2xl text-center"
         >
-          <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl lg:text-4xl">
+          <h2 className="text-2xl font-bold text-foreground sm:text-3xl lg:text-4xl">
             Focused Buyer And Seller Features
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-sm text-gray-500 sm:text-base">
+          <p className="mx-auto mt-4 max-w-xl text-sm text-muted-foreground sm:text-base">
             Compliment your eCommerce marketplace with tailor-made features
             that cover essential use cases for both of the user profiles.
           </p>
@@ -116,7 +99,7 @@ export default function BuyerSellerFeaturesSection() {
           <button
             onClick={() => handleTabChange("buyer")}
             className={`relative pb-2 text-base font-semibold transition sm:text-lg ${
-              activeTab === "buyer" ? "text-rose-500" : "text-gray-400 hover:text-gray-600"
+              activeTab === "buyer" ? "text-rose-500" : "text-muted-foreground hover:text-foreground"
             }`}
           >
             Buyer Features
@@ -130,7 +113,7 @@ export default function BuyerSellerFeaturesSection() {
           <button
             onClick={() => handleTabChange("seller")}
             className={`relative pb-2 text-base font-semibold transition sm:text-lg ${
-              activeTab === "seller" ? "text-rose-500" : "text-gray-400 hover:text-gray-600"
+              activeTab === "seller" ? "text-rose-500" : "text-muted-foreground hover:text-foreground"
             }`}
           >
             Seller Features
@@ -160,19 +143,19 @@ export default function BuyerSellerFeaturesSection() {
                   return (
                     <div
                       key={item.title}
-                      className="border-b border-gray-100 py-5"
+                      className="border-b border-border py-5"
                     >
                       <button
                         onClick={() => setOpenIndex(isOpen ? -1 : index)}
                         className="flex w-full items-center justify-between text-left"
                       >
-                        <span className="text-base font-semibold text-gray-900 sm:text-lg">
+                        <span className="text-base font-semibold text-foreground sm:text-lg">
                           {item.title}
                         </span>
                         <motion.span
                           animate={{ rotate: isOpen ? 180 : 0 }}
                           transition={{ duration: 0.25 }}
-                          className="text-gray-400"
+                          className="text-muted-foreground"
                         >
                           <ChevronDown size={18} />
                         </motion.span>
@@ -187,7 +170,7 @@ export default function BuyerSellerFeaturesSection() {
                             transition={{ duration: 0.3, ease: "easeInOut" }}
                             className="overflow-hidden"
                           >
-                            <p className="pt-3 text-sm leading-relaxed text-gray-500">
+                            <p className="pt-3 text-sm leading-relaxed text-muted-foreground">
                               {item.description}
                             </p>
                           </motion.div>
@@ -214,7 +197,7 @@ export default function BuyerSellerFeaturesSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="absolute left-1/2 top-8 h-72 w-52 -translate-x-1/2 rounded-t-full bg-gradient-to-b from-sky-100 to-rose-50"
+              className="absolute left-1/2 top-8 h-72 w-52 -translate-x-1/2 rounded-t-full bg-gradient-to-b from-sky-100 to-rose-50 dark:from-sky-900/30 dark:to-rose-900/30"
             />
 
             {/* Rating stars under the placeholder */}
@@ -228,7 +211,7 @@ export default function BuyerSellerFeaturesSection() {
               {[...Array(4)].map((_, i) => (
                 <Star key={i} size={16} className="fill-amber-400 text-amber-400" />
               ))}
-              <Star size={16} className="text-gray-300" />
+              <Star size={16} className="text-muted-foreground" />
             </motion.div>
 
             {/* Reward Points floating card (left) */}
@@ -238,16 +221,16 @@ export default function BuyerSellerFeaturesSection() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.2 }}
               whileHover={{ y: -4 }}
-              className="absolute left-0 top-16 w-32 overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-gray-100"
+              className="absolute left-0 top-16 w-32 overflow-hidden rounded-xl bg-card shadow-lg ring-1 ring-border"
             >
               <div className="flex items-center gap-1.5 bg-sky-400 px-3 py-2 text-white">
                 <Award size={13} />
                 <span className="text-[10px] font-semibold">Reward Points</span>
               </div>
               <div className="px-3 py-3 text-center">
-                <p className="text-xl font-bold text-gray-900">$20</p>
-                <p className="text-[10px] text-gray-400">Reward Points</p>
-                <button className="mt-2 w-full rounded-md border border-gray-200 py-1 text-[9px] font-medium text-gray-600">
+                <p className="text-xl font-bold text-foreground">$20</p>
+                <p className="text-[10px] text-muted-foreground">Reward Points</p>
+                <button className="mt-2 w-full rounded-md border border-border py-1 text-[9px] font-medium text-foreground">
                   Redeem Now
                 </button>
               </div>
@@ -260,12 +243,12 @@ export default function BuyerSellerFeaturesSection() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.3 }}
               whileHover={{ y: -4 }}
-              className="absolute right-0 top-24 w-36 overflow-hidden rounded-xl bg-gray-800 text-white shadow-lg"
+              className="absolute right-0 top-24 w-36 overflow-hidden rounded-xl bg-card shadow-lg ring-1 ring-border"
             >
-              <div className="border-b border-white/10 px-3 py-2">
-                <p className="text-[10px] font-semibold text-gray-300">Total</p>
+              <div className="border-b border-border px-3 py-2">
+                <p className="text-[10px] font-semibold text-muted-foreground">Total</p>
               </div>
-              <div className="space-y-1 px-3 py-2 text-[9px] text-gray-300">
+              <div className="space-y-1 px-3 py-2 text-[9px] text-muted-foreground">
                 <div className="flex justify-between">
                   <span>Sub-Total</span>
                   <span>$80.00</span>
@@ -292,9 +275,9 @@ export default function BuyerSellerFeaturesSection() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.4 }}
               whileHover={{ rotate: -6 }}
-              className="absolute bottom-4 right-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gray-100 shadow-md"
+              className="absolute bottom-4 right-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-muted shadow-md"
             >
-              <div className="h-12 w-9 rounded-lg bg-gray-800" />
+              <div className="h-12 w-9 rounded-lg bg-foreground" />
             </motion.div>
 
             {/* Badge/star circle (bottom left) */}
@@ -304,9 +287,9 @@ export default function BuyerSellerFeaturesSection() {
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: 0.5 }}
               whileHover={{ scale: 1.1 }}
-              className="absolute bottom-8 left-6 grid h-12 w-12 place-items-center rounded-full bg-gray-100 shadow-md"
+              className="absolute bottom-8 left-6 grid h-12 w-12 place-items-center rounded-full bg-muted shadow-md"
             >
-              <Star size={18} className="text-gray-400" />
+              <Star size={18} className="text-muted-foreground" />
             </motion.div>
 
             {/* Small pink accent dot */}

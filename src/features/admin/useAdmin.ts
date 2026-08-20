@@ -74,6 +74,13 @@ export function useAdminOrders(page = 1) {
     queryFn: () => adminService.getOrders(page),
   });
 }
+
+export function useAdminFulfillments(page = 1) {
+  return useQuery({
+    queryKey: ["admin", "fulfillments", page],
+    queryFn: () => adminService.getFulfillments(page),
+  });
+}
 // Product delete korar API call
 async function deleteProduct(productId: string) {
   await api.delete(`/admin/products/${productId}`);

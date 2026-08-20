@@ -67,6 +67,13 @@ export const adminService = {
     const { data } = await api.get("/admin/orders", { params: { page } });
     return data;
   },
+
+  getFulfillments: async (
+    page = 1
+  ): Promise<{ items: any[]; total: number; page: number; limit: number }> => {
+    const { data } = await api.get("/admin/fulfillments", { params: { page } });
+    return data;
+  },
 };
 export async function getAdminCategories({ page = 1, limit = 10 }: { page?: number; limit?: number } = {}) {
   const { data } = await api.get("/admin/categories", {

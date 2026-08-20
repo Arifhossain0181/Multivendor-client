@@ -56,14 +56,14 @@ function Counter({ stat }: { stat: Stat }) {
 
 export default function WhyChooseUs() {
   return (
-    <section className="w-full bg-white">
+    <section className="w-full bg-white dark:bg-background transition-colors duration-500">
       <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
         <motion.h2
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, amount: 0.6 }}
           variants={fadeUp}
-          className="text-center text-3xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-4xl lg:text-[2.75rem]"
+          className="text-center text-3xl font-extrabold leading-tight tracking-tight text-foreground sm:text-4xl lg:text-[2.75rem]"
         >
           Why Choose MultiVendor for Your Multi-Vendor
           <br className="hidden sm:block" /> eCommerce Marketplace?
@@ -75,7 +75,7 @@ export default function WhyChooseUs() {
           viewport={{ once: true, amount: 0.6 }}
           variants={fadeUp}
           custom={{ delay: 0.12 }}
-          className="mx-auto mt-6 max-w-3xl text-center text-base leading-relaxed text-slate-500 sm:text-lg"
+          className="mx-auto mt-6 max-w-3xl text-center text-base leading-relaxed text-muted-foreground sm:text-lg"
         >
           MultiVendor is a multi-vendor eCommerce marketplace platform carefully crafted to
           fulfill the needs of startups and enterprises. We pride ourselves on empowering
@@ -95,10 +95,10 @@ export default function WhyChooseUs() {
               custom={{ delay: 0.2 + i * 0.1 }}
               className="flex flex-col items-center text-center"
             >
-              <span className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl lg:text-[3.25rem]">
+              <span className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-[3.25rem]">
                 <Counter stat={stat} />
               </span>
-              <span className="mt-2 text-sm font-medium text-slate-500 sm:text-base">
+              <span className="mt-2 text-sm font-medium text-muted-foreground sm:text-base">
                 {stat.label}
               </span>
             </motion.div>

@@ -2,304 +2,522 @@
 
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
-import { useState } from 'react';
-import { 
-  ShoppingBag, Clock, CheckCircle2, 
+import { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import {
+  ShoppingBag, Clock, CheckCircle2,
   AlertTriangle, ArrowRight, ShieldAlert,
-  Calendar, CreditCard, ChevronRight, PackageOpen
+  Calendar, CreditCard, ChevronRight, PackageOpen,
+  Search, SlidersHorizontal, X,
 } from 'lucide-react';
 import { api } from '@/src/lib/axios';
+import { Skeleton } from '@/src/components/ui/skeleton';
+import { Input } from '@/src/components/ui/input';
+import { Button } from '@/src/components/ui/button';
 
 interface OrderItem {
-    id: string;
-    productName: string;
-    variantName: string;
-    quantity: number;
-    unitPrice: number;
+  id: string;
+  productName: string;
+  variantName: string;
+  quantity: number;
+  unitPrice: number;
 }
 
 interface SubOrder {
-    id: string;
-    sellerId: string;
-    subtotal: number;
-    status: string;
-    items: OrderItem[];
+  id: string;
+  sellerId: string;
+  subtotal: number;
+  status: string;
+  items: OrderItem[];
 }
 
 interface Order {
-    id: string;
-    totalAmount: number;
-    status: string;
-    createdAt: string;
-    shippingAddress?: string;
-    subOrders: SubOrder[];
+  id: string;
+  totalAmount: number;
+  status: string;
+  createdAt: string;
+  shippingAddress?: string;
+  subOrders: SubOrder[];
 }
 
 interface Meta {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 const STATUS_STYLE: Record<string, string> = {
-    PAID: 'bg-green-50 text-green-700 border-green-200',
-    PENDING_PAYMENT: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-    PAYMENT_FAILED_STOCK: 'bg-red-50 text-red-700 border-red-200',
-    CONFIRMED: 'bg-blue-50 text-blue-700 border-blue-200',
-    SHIPPED: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-    DELIVERED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    CANCELLED: 'bg-gray-50 text-gray-500 border-gray-200',
+  PAID: 'bg-emerald-500/10 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-800',
+  PENDING_PAYMENT: 'bg-amber-500/10 text-amber-600 border-amber-200 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-800',
+  PAYMENT_FAILED_STOCK: 'bg-red-500/10 text-red-600 border-red-200 dark:bg-red-500/20 dark:text-red-400 dark:border-red-800',
+  CONFIRMED: 'bg-sky-500/10 text-sky-600 border-sky-200 dark:bg-sky-500/20 dark:text-sky-400 dark:border-sky-800',
+  SHIPPED: 'bg-indigo-500/10 text-indigo-600 border-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-400 dark:border-indigo-800',
+  DELIVERED: 'bg-emerald-500/10 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-800',
+  CANCELLED: 'bg-gray-500/10 text-gray-500 border-gray-200 dark:bg-gray-500/20 dark:text-gray-400 dark:border-gray-700',
 };
 
 const STATUS_LABEL: Record<string, string> = {
-    PAID: 'Paid',
-    PENDING_PAYMENT: 'Pending Payment',
-    PAYMENT_FAILED_STOCK: 'Payment Failed',
-    CONFIRMED: 'Confirmed',
-    SHIPPED: 'Shipped',
-    DELIVERED: 'Delivered',
-    CANCELLED: 'Cancelled',
+  PAID: 'Paid',
+  PENDING_PAYMENT: 'Pending Payment',
+  PAYMENT_FAILED_STOCK: 'Payment Failed',
+  CONFIRMED: 'Confirmed',
+  SHIPPED: 'Shipped',
+  DELIVERED: 'Delivered',
+  CANCELLED: 'Cancelled',
 };
 
 const getStatusIcon = (status: string) => {
   switch (status) {
     case "PAID":
     case "DELIVERED":
-      return <CheckCircle2 className="h-4 w-4 text-green-600" />;
+      return <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />;
     case "PENDING_PAYMENT":
-      return <Clock className="h-4 w-4 text-yellow-600" />;
+      return <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />;
     case "SHIPPED":
-      return <Clock className="h-4 w-4 text-indigo-600" />;
+      return <Clock className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />;
     case "CONFIRMED":
-      return <Clock className="h-4 w-4 text-blue-600" />;
+      return <Clock className="h-4 w-4 text-sky-600 dark:text-sky-400" />;
     case "CANCELLED":
     case "PAYMENT_FAILED_STOCK":
-      return <AlertTriangle className="h-4 w-4 text-red-600" />;
+      return <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />;
     default:
-      return <Clock className="h-4 w-4 text-gray-600" />;
+      return <Clock className="h-4 w-4 text-gray-600 dark:text-gray-400" />;
   }
 };
 
 const fetchOrders = async (page: number): Promise<{ orders: Order[]; meta: Meta }> => {
-    const { data } = await api.get(`/orders?page=${page}&limit=10`);
-    return data.data;
+  const { data } = await api.get(`/orders?page=${page}&limit=10`);
+  return data.data;
 };
 
-export default function OrdersPage() {
-    const [page, setPage] = useState(1);
-    const [activeFilter, setActiveFilter] = useState<'ALL' | 'PAID' | 'PENDING' | 'CANCELLED'>('ALL');
-
-    const { data, isLoading, isError, error } = useQuery({
-        queryKey: ['orders', page],
-        queryFn: () => fetchOrders(page),
-    });
-
-    if (isLoading) {
-        return (
-            <div className="min-h-[70vh] flex flex-col items-center justify-center bg-gray-50/50">
-                <div className="flex flex-col items-center gap-3">
-                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0A1F44]" />
-                    <p className="text-sm text-gray-500 font-medium animate-pulse">Loading your orders...</p>
-                </div>
-            </div>
-        );
-    }
-
-    if (isError) {
-        return (
-            <div className="min-h-[75vh] flex items-center justify-center bg-gray-50/50 p-4">
-                <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm max-w-md w-full text-center">
-                    <div className="h-12 w-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
-                        <ShieldAlert className="h-6 w-6 text-red-500" />
-                    </div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-2">Failed to Fetch Orders</h2>
-                    <p className="text-sm text-gray-500 mb-6">
-                        {(error as Error).message || "There was a problem loading your orders. Please try again."}
-                    </p>
-                    <button
-                        onClick={() => window.location.reload()}
-                        className="w-full bg-[#0A1F44] text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition"
-                    >
-                        Retry
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    const orders = data?.orders ?? [];
-    const meta = data?.meta;
-
-    // Client-side filtering for user's convenience
-    const filteredOrders = orders.filter((order) => {
-        if (activeFilter === 'ALL') return true;
-        if (activeFilter === 'PAID') return order.status === 'PAID';
-        if (activeFilter === 'PENDING') return order.status === 'PENDING_PAYMENT';
-        if (activeFilter === 'CANCELLED') return order.status === 'CANCELLED' || order.status === 'PAYMENT_FAILED_STOCK';
-        return true;
-    });
-
-    return (
-        <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl mx-auto">
-                {/* Header Section */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-                    <div>
-                        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900">My Orders</h1>
-                        <p className="text-sm text-gray-500 mt-1">
-                            {meta ? `${meta.total} orders total` : 'Manage your recent transactions'}
-                        </p>
-                    </div>
-                    <Link
-                        href="/"
-                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#0A1F44] hover:opacity-85 transition"
-                    >
-                        Continue Shopping <ArrowRight size={15} />
-                    </Link>
-                </div>
-
-                {/* Filter Tabs */}
-                <div className="flex border-b border-gray-200 mb-6 gap-6 overflow-x-auto pb-px">
-                    {(['ALL', 'PAID', 'PENDING', 'CANCELLED'] as const).map((filter) => (
-                        <button
-                            key={filter}
-                            onClick={() => setActiveFilter(filter)}
-                            className={`py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap -mb-px ${
-                                activeFilter === filter
-                                    ? 'border-[#0A1F44] text-[#0A1F44] font-bold'
-                                    : 'border-transparent text-gray-500 hover:text-gray-900'
-                            }`}
-                        >
-                            {filter.charAt(0) + filter.slice(1).toLowerCase()} Orders
-                        </button>
-                    ))}
-                </div>
-
-                {/* Empty State */}
-                {filteredOrders.length === 0 && (
-                    <div className="text-center py-20 bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
-                        <div className="h-16 w-16 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-4 border border-gray-100 text-gray-400">
-                            <PackageOpen size={30} />
-                        </div>
-                        <h2 className="text-xl font-bold text-gray-900">No orders found</h2>
-                        <p className="text-sm text-gray-400 mt-1 mb-6 max-w-xs mx-auto">
-                            {activeFilter === 'ALL'
-                                ? "You haven't placed any orders yet. Start browsing products!"
-                                : `You don't have any orders marked as ${activeFilter.toLowerCase()}.`}
-                        </p>
-                        <Link 
-                            href="/" 
-                            className="inline-flex bg-[#0A1F44] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition shadow-sm"
-                        >
-                            Start Shopping
-                        </Link>
-                    </div>
-                )}
-
-                {/* Orders List */}
-                <div className="space-y-6">
-                    {filteredOrders.map((order) => {
-                        const allItems = order.subOrders.flatMap((s) => s.items);
-                        const preview = allItems.slice(0, 2);
-                        const remaining = allItems.length - preview.length;
-                        const formattedDate = new Date(order.createdAt).toLocaleDateString('en-BD', {
-                            year: 'numeric', month: 'short', day: 'numeric',
-                        });
-
-                        return (
-                            <Link key={order.id} href={`/orders/${order.id}`} className="block group">
-                                <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer hover:border-gray-200">
-                                    {/* Order Card Header */}
-                                    <div className="flex items-start justify-between flex-wrap gap-4 pb-4 border-b border-gray-50">
-                                        <div className="flex gap-4 items-center">
-                                            <div className="h-10 w-10 rounded-xl bg-gray-50 flex items-center justify-center border border-gray-100 text-[#0A1F44]">
-                                                <ShoppingBag size={18} />
-                                            </div>
-                                            <div>
-                                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Order ID</p>
-                                                <p className="text-sm font-mono font-bold text-gray-900 mt-0.5">
-                                                    #{order.id.slice(0, 16)}...
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border ${STATUS_STYLE[order.status] || 'bg-gray-100 text-gray-500'}`}>
-                                            {getStatusIcon(order.status)}
-                                            {STATUS_LABEL[order.status] || order.status}
-                                        </span>
-                                    </div>
-
-                                    {/* Preview of Purchased items */}
-                                    <div className="py-5 space-y-4">
-                                        {preview.map((item) => (
-                                            <div key={item.id} className="flex justify-between items-start text-sm">
-                                                <div>
-                                                    <p className="font-semibold text-gray-900 leading-tight">
-                                                        {item.productName}
-                                                    </p>
-                                                    <p className="text-xs text-gray-400 mt-0.5">
-                                                        {item.variantName} <span className="font-medium text-gray-500 ml-1">× {item.quantity}</span>
-                                                    </p>
-                                                </div>
-                                                <span className="font-bold text-gray-800 flex-shrink-0">
-                                                    ৳{(Number(item.unitPrice) * item.quantity).toLocaleString()}
-                                                </span>
-                                            </div>
-                                        ))}
-                                        {remaining > 0 && (
-                                            <p className="text-xs font-semibold text-gray-400 mt-1 pl-1">
-                                                + {remaining} more {remaining === 1 ? 'item' : 'items'}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    {/* Order Card Footer */}
-                                    <div className="pt-4 border-t border-gray-50 flex justify-between items-center flex-wrap gap-3">
-                                        <div className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
-                                            <Calendar size={14} />
-                                            <span>Ordered on {formattedDate}</span>
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            <div>
-                                                <p className="text-[10px] text-right font-bold text-gray-400 uppercase tracking-wider">Total Paid</p>
-                                                <p className="text-lg font-black text-[#0A1F44] mt-0.5">
-                                                    ৳{Number(order.totalAmount).toLocaleString()}
-                                                </p>
-                                            </div>
-                                            <div className="h-8 w-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-[#0A1F44] group-hover:text-white transition-all">
-                                                <ChevronRight size={18} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </Link>
-                        );
-                    })}
-                </div>
-
-                {/* Pagination Controls */}
-                {meta && meta.totalPages > 1 && (
-                    <div className="flex justify-center items-center gap-3 mt-10">
-                        <button
-                            onClick={() => setPage((p) => Math.max(1, p - 1))}
-                            disabled={page === 1}
-                            className="px-4 py-2 text-sm font-semibold border border-gray-200 rounded-xl disabled:opacity-40 hover:bg-gray-100 transition disabled:hover:bg-transparent bg-white shadow-xs"
-                        >
-                            Previous
-                        </button>
-                        <span className="text-sm font-medium text-gray-500">
-                            Page {meta.page} of {meta.totalPages}
-                        </span>
-                        <button
-                            onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
-                            disabled={page === meta.totalPages}
-                            className="px-4 py-2 text-sm font-semibold border border-gray-200 rounded-xl disabled:opacity-40 hover:bg-gray-100 transition disabled:hover:bg-transparent bg-white shadow-xs"
-                        >
-                            Next
-                        </button>
-                    </div>
-                )}
-            </div>
+function OrderCardSkeleton() {
+  return (
+    <div className="bg-card rounded-3xl border border-border p-6 shadow-sm">
+      <div className="flex items-start justify-between flex-wrap gap-4 pb-4 border-b border-border">
+        <div className="flex gap-4 items-center">
+          <Skeleton className="h-10 w-10 rounded-xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-4 w-32" />
+          </div>
         </div>
-    );
+        <Skeleton className="h-7 w-28 rounded-full" />
+      </div>
+      <div className="py-5 space-y-4">
+        <div className="space-y-3">
+          <div className="flex justify-between items-start">
+            <div className="space-y-2 flex-1">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+            <Skeleton className="h-5 w-20" />
+          </div>
+          <div className="flex justify-between items-start">
+            <div className="space-y-2 flex-1">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-20" />
+            </div>
+            <Skeleton className="h-5 w-16" />
+          </div>
+        </div>
+      </div>
+      <div className="pt-4 border-t border-border flex justify-between items-center flex-wrap gap-3">
+        <Skeleton className="h-4 w-36" />
+        <div className="flex items-center gap-4">
+          <div className="text-right space-y-1">
+            <Skeleton className="h-3 w-16 ml-auto" />
+            <Skeleton className="h-6 w-24 ml-auto" />
+          </div>
+          <Skeleton className="h-8 w-8 rounded-full" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function OrdersPage() {
+  const [page, setPage] = useState(1);
+  const [activeFilter, setActiveFilter] = useState<'ALL' | 'PAID' | 'PENDING' | 'CANCELLED'>('ALL');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ['orders', page],
+    queryFn: () => fetchOrders(page),
+  });
+
+  const orders = data?.orders ?? [];
+  const meta = data?.meta;
+
+  const filteredOrders = useMemo(() => {
+    let result = orders;
+
+    if (activeFilter !== 'ALL') {
+      if (activeFilter === 'PAID') result = result.filter((o) => o.status === 'PAID');
+      else if (activeFilter === 'PENDING') result = result.filter((o) => o.status === 'PENDING_PAYMENT');
+      else if (activeFilter === 'CANCELLED') result = result.filter((o) => o.status === 'CANCELLED' || o.status === 'PAYMENT_FAILED_STOCK');
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter((order) => {
+        const allItems = order.subOrders.flatMap((s) => s.items);
+        const itemNames = allItems.map((i) => i.productName.toLowerCase()).join(' ');
+        const orderId = order.id.toLowerCase();
+        return itemNames.includes(q) || orderId.includes(q);
+      });
+    }
+
+    return result;
+  }, [orders, activeFilter, searchQuery]);
+
+  const filterCounts = useMemo(() => {
+    const counts: Record<string, number> = { ALL: orders.length };
+    orders.forEach((o) => {
+      if (o.status === 'PAID') counts.PAID = (counts.PAID || 0) + 1;
+      else if (o.status === 'PENDING_PAYMENT') counts.PENDING = (counts.PENDING || 0) + 1;
+      else if (o.status === 'CANCELLED' || o.status === 'PAYMENT_FAILED_STOCK') counts.CANCELLED = (counts.CANCELLED || 0) + 1;
+    });
+    return counts;
+  }, [orders]);
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Hero Header */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary/95 to-primary/90 dark:from-primary dark:via-primary/90 dark:to-primary/80">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-white/5 blur-3xl" />
+          <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
+        </div>
+        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4"
+          >
+            <div>
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="text-xs font-semibold tracking-[0.2em] text-white/70"
+              >
+                ORDER HISTORY
+              </motion.p>
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="mt-3 text-3xl font-bold text-white sm:text-4xl"
+              >
+                My Orders
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="mt-2 text-sm text-white/80 sm:text-base"
+              >
+                {meta ? `${meta.total} orders total` : 'Manage your recent transactions'}
+              </motion.p>
+            </div>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Link
+                href="/"
+                className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/20 border border-white/10"
+              >
+                Continue Shopping <ArrowRight size={15} />
+              </Link>
+            </motion.div>
+          </motion.div>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent" />
+      </section>
+
+      {/* Main Content */}
+      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Search and Filter Bar */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-6 flex flex-col sm:flex-row gap-3"
+        >
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search orders or products..."
+              className="pl-10 bg-card border-border"
+            />
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
+            className="lg:hidden flex items-center gap-2"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            Filters
+          </Button>
+        </motion.div>
+
+        {/* Filter Tabs */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mb-8"
+        >
+          <div className="flex gap-1 rounded-xl bg-muted/50 p-1.5 overflow-x-auto">
+            {(['ALL', 'PAID', 'PENDING', 'CANCELLED'] as const).map((filter) => (
+              <button
+                key={filter}
+                onClick={() => setActiveFilter(filter)}
+                className={`relative rounded-lg px-4 py-2.5 text-sm font-medium transition-all whitespace-nowrap ${
+                  activeFilter === filter
+                    ? 'bg-card text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {activeFilter === filter && (
+                  <motion.div
+                    layoutId="activeFilter"
+                    className="absolute inset-0 rounded-lg bg-card shadow-sm"
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  />
+                )}
+                <span className="relative z-10 flex items-center gap-1.5">
+                  {filter === 'ALL' && <ShoppingBag className="h-3.5 w-3.5" />}
+                  {filter === 'PAID' && <CheckCircle2 className="h-3.5 w-3.5" />}
+                  {filter === 'PENDING' && <Clock className="h-3.5 w-3.5" />}
+                  {filter === 'CANCELLED' && <AlertTriangle className="h-3.5 w-3.5" />}
+                  {filter.charAt(0) + filter.slice(1).toLowerCase()} Orders
+                  <span className={`ml-1 rounded-full px-2 py-0.5 text-xs ${
+                    activeFilter === filter
+                      ? 'bg-primary/10 text-primary'
+                      : 'bg-muted text-muted-foreground'
+                  }`}>
+                    {filterCounts[filter] || 0}
+                  </span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Loading Skeleton */}
+        {isLoading && (
+          <motion.div
+            className="space-y-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ staggerChildren: 0.1 }}
+          >
+            {Array.from({ length: 5 }).map((_, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+              >
+                <OrderCardSkeleton />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+
+        {/* Error State */}
+        {isError && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="rounded-3xl border border-destructive/20 bg-destructive/5 p-8 text-center"
+          >
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+              <ShieldAlert className="h-6 w-6 text-destructive" />
+            </div>
+            <h2 className="text-lg font-bold text-foreground">Failed to Load Orders</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {(error as Error).message || "There was a problem loading your orders. Please try again."}
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+            >
+              Retry
+            </button>
+          </motion.div>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && !isError && filteredOrders.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="rounded-3xl border border-dashed border-border bg-muted/20 p-12 text-center"
+          >
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+              <PackageOpen size={30} className="text-muted-foreground" />
+            </div>
+            <h2 className="text-lg font-bold text-foreground">No orders found</h2>
+            <p className="mt-1 max-w-sm text-sm text-muted-foreground mx-auto">
+              {searchQuery
+                ? `No orders match "${searchQuery}". Try a different search term.`
+                : activeFilter !== 'ALL'
+                  ? `You don't have any orders marked as ${activeFilter.toLowerCase()}.`
+                  : "You haven't placed any orders yet. Start browsing products!"}
+            </p>
+            <Link
+              href="/"
+              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 shadow-sm"
+            >
+              Start Shopping <ArrowRight size={15} />
+            </Link>
+          </motion.div>
+        )}
+
+        {/* Orders List */}
+        {!isLoading && !isError && filteredOrders.length > 0 && (
+          <motion.div
+            className="space-y-4"
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: {},
+              show: { transition: { staggerChildren: 0.08 } }
+            }}
+          >
+            <AnimatePresence mode="wait">
+              {filteredOrders.map((order) => {
+                const allItems = order.subOrders.flatMap((s) => s.items);
+                const preview = allItems.slice(0, 2);
+                const remaining = allItems.length - preview.length;
+                const formattedDate = new Date(order.createdAt).toLocaleDateString('en-BD', {
+                  year: 'numeric', month: 'short', day: 'numeric',
+                });
+
+                return (
+                  <motion.div
+                    key={order.id}
+                    variants={{
+                      hidden: { opacity: 0, y: 20 },
+                      show: { opacity: 1, y: 0 }
+                    }}
+                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    layout
+                  >
+                    <Link href={`/orders/${order.id}`} className="block group">
+                      <div className="bg-card rounded-3xl border border-border p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:shadow-primary/5 dark:hover:shadow-primary/10 cursor-pointer hover:border-border/80">
+                        {/* Order Card Header */}
+                        <div className="flex items-start justify-between flex-wrap gap-4 pb-4 border-b border-border">
+                          <div className="flex gap-4 items-center">
+                            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/10 text-primary">
+                              <ShoppingBag size={18} />
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Order ID</p>
+                              <p className="text-sm font-mono font-bold text-foreground mt-0.5">
+                                #{order.id.slice(0, 16)}...
+                              </p>
+                            </div>
+                          </div>
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border ${STATUS_STYLE[order.status] || 'bg-gray-100 text-gray-500'}`}>
+                            {getStatusIcon(order.status)}
+                            {STATUS_LABEL[order.status] || order.status}
+                          </span>
+                        </div>
+
+                        {/* Preview of Purchased items */}
+                        <div className="py-5 space-y-3">
+                          {preview.map((item) => (
+                            <div key={item.id} className="flex justify-between items-start text-sm group/item">
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-foreground leading-tight truncate">
+                                  {item.productName}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-0.5">
+                                  {item.variantName} <span className="font-medium text-foreground/70 ml-1">× {item.quantity}</span>
+                                </p>
+                              </div>
+                              <span className="font-bold text-foreground flex-shrink-0 ml-4">
+                                ৳{(Number(item.unitPrice) * item.quantity).toLocaleString()}
+                              </span>
+                            </div>
+                          ))}
+                          {remaining > 0 && (
+                            <p className="text-xs font-semibold text-muted-foreground mt-2 pl-1 flex items-center gap-1">
+                              <span className="h-1 w-1 rounded-full bg-muted-foreground/50" />
+                              + {remaining} more {remaining === 1 ? 'item' : 'items'}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Order Card Footer */}
+                        <div className="pt-4 border-t border-border flex justify-between items-center flex-wrap gap-3">
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+                            <Calendar size={14} />
+                            <span>Ordered on {formattedDate}</span>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <p className="text-[10px] text-right font-bold text-muted-foreground uppercase tracking-wider">Total Paid</p>
+                              <p className="text-lg font-black text-primary mt-0.5">
+                                ৳{Number(order.totalAmount).toLocaleString()}
+                              </p>
+                            </div>
+                            <motion.div
+                              whileHover={{ scale: 1.1 }}
+                              className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all"
+                            >
+                              <ChevronRight size={18} />
+                            </motion.div>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </motion.div>
+        )}
+
+        {/* Pagination Controls */}
+        {meta && meta.totalPages > 1 && !isLoading && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-10 flex items-center justify-center gap-3"
+          >
+            <Button
+              variant="outline"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="rounded-xl"
+            >
+              Previous
+            </Button>
+            <span className="text-sm font-medium text-muted-foreground px-4">
+              Page {meta.page} of {meta.totalPages}
+            </span>
+            <Button
+              variant="outline"
+              onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
+              disabled={page === meta.totalPages}
+              className="rounded-xl"
+            >
+              Next
+            </Button>
+          </motion.div>
+        )}
+      </main>
+    </div>
+  );
 }

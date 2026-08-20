@@ -49,7 +49,7 @@ export default function ResourceSection() {
   };
 
   return (
-    <section ref={containerRef} className="w-full bg-[#f9f9f9] py-16 lg:py-24 overflow-hidden">
+    <section ref={containerRef} className="w-full bg-muted/30 dark:bg-muted/10 py-16 lg:py-24 overflow-hidden transition-colors duration-500">
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 xl:px-20 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
         
         {/* ---------------- LEFT CONTENT SECTION ---------------- */}
@@ -60,10 +60,10 @@ export default function ResourceSection() {
           className="lg:col-span-4 flex flex-col justify-between h-full space-y-6 lg:sticky lg:top-24"
         >
           <div className="space-y-4">
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 leading-[1.2]">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-[1.2]">
               Resource - Guides & Blogs To Help Set Up A Multi vendor Marketplace
             </h2>
-            <p className="text-sm sm:text-base text-slate-500 leading-relaxed max-w-md">
+            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-md">
               Presenting collection of extensive guides to help expand your knowledge for setting up an 
               eCommerce marketplace & capture the growth by investing in the right capabilities.
             </p>
@@ -99,7 +99,7 @@ export default function ResourceSection() {
               animate={isInView ? "visible" : "hidden"}
               variants={cardVariants}
               whileHover={{ y: -8 }} //
-              className="flex flex-col bg-white border border-slate-100 rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300 group cursor-pointer"
+              className="flex flex-col bg-card border border-border rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300 group cursor-pointer"
             >
               {/* Image Container with Zoom Effect */}
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100">
@@ -113,15 +113,15 @@ export default function ResourceSection() {
 
               {/* Card Body */}
               <div className="p-5 flex flex-col flex-1 justify-between space-y-4">
-                <h3 className="text-sm font-medium text-slate-800 line-clamp-3 group-hover:text-rose-500 transition-colors duration-300 leading-snug">
+                <h3 className="text-sm font-medium text-foreground line-clamp-3 group-hover:text-rose-500 transition-colors duration-300 leading-snug">
                   {item.title}
                 </h3>
                 
-                <div className="pt-2 border-t border-slate-50 flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-900 border-b border-slate-900 pb-0.5 group-hover:text-rose-500 group-hover:border-rose-500 transition-colors duration-300">
+                <div className="pt-2 border-t border-border flex items-center justify-between">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-foreground border-b border-foreground pb-0.5 group-hover:text-rose-500 group-hover:border-rose-500 transition-colors duration-300">
                     {item.linkText}
                   </span>
-                  <ArrowUpRight size={14} className="text-slate-400 opacity-0 group-hover:opacity-100 group-hover:text-rose-500 transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-300" />
+                  <ArrowUpRight size={14} className="text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:text-rose-500 transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-300" />
                 </div>
               </div>
             </motion.div>
