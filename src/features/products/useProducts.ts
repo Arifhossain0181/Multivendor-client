@@ -10,6 +10,7 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  trackProductView,
 } from "../../services/Product.service";
 
 type Category = {
@@ -47,7 +48,8 @@ export function useProducts(params?: ProductListParams) {
     return useQuery({
         queryKey: productKeys.list(params),
         queryFn: () => getProducts(params),
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        staleTime: 0,
+        refetchOnWindowFocus: true,
     })
 }
 
@@ -134,11 +136,22 @@ export function useMyProducts(params?: ProductListParams, options?: { enabled?: 
 }
 
 export function useFetchMyProducts(params?: ProductListParams) {
-  const { data, ...query } = useMyProducts(params);
+	const { data, ...query } = useMyProducts(params);
 
-  return {
-    data: data?.data ?? [],
-    ...query,
-  };
+	return {
+		data: data?.data ?? [],
+		...query,
+	};
+}
+
+export function useTrackProductView() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ productId }: { productId: ProductId }) => trackProductView(productId),
+		onSuccess: (_data, variables) => {
+			queryClient.invalidateQueries({ queryKey: productKeys.detail(variables.productId) });
+			queryClient.invalidateQueries({ queryKey: productKeys.list() });
+		},
+	});
 }
  

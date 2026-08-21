@@ -15,10 +15,10 @@ export function useAdminStats() {
   });
 }
 
-export function useAdminUsers(role?: UserRole, page = 1) {
+export function useAdminUsers(role?: UserRole, page = 1, hasPaidOrders?: boolean) {
   return useQuery({
-    queryKey: ["admin", "users", role ?? "ALL", page],
-    queryFn: () => adminService.getUsers(role, page),
+    queryKey: ["admin", "users", role ?? "ALL", page, hasPaidOrders],
+    queryFn: () => adminService.getUsers(role, page, hasPaidOrders),
   });
 }
 

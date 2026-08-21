@@ -14,9 +14,14 @@ const tabs: { label: string; value: UserRole | undefined }[] = [
 export default function AdminUsersPage() {
   const [activeTab, setActiveTab] = useState<UserRole | undefined>(undefined);
   const [page, setPage] = useState(1);
-  const { data, isLoading } = useAdminUsers(activeTab, page);
+  const { data, isLoading, isError, error } = useAdminUsers(
+    activeTab === "CUSTOMER" ? undefined : activeTab,
+    page,
+    activeTab === "CUSTOMER"
+  );
   const pageSize = data?.limit ?? 10;
   const totalPages = data ? Math.max(1, Math.ceil(data.total / pageSize)) : 1;
+  const activeLabel = tabs.find(t => t.value === activeTab)?.label ?? "All";
 
   return (
     <div>
@@ -51,6 +56,14 @@ export default function AdminUsersPage() {
 
       {isLoading ? (
         <div className="h-96 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-900" />
+      ) : isError ? (
+        <div className="rounded-xl border border-red-100 bg-red-50 p-6 text-center text-sm text-red-600 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-400">
+          Failed to load {activeLabel.toLowerCase()}. {error instanceof Error ? error.message : "Please try again."}
+        </div>
+      ) : !data?.items?.length ? (
+        <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-10 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-400">
+          No {activeLabel.toLowerCase()} found.
+        </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
           <table className="w-full text-left text-sm">
@@ -64,7 +77,7 @@ export default function AdminUsersPage() {
               </tr>
             </thead>
             <tbody>
-              {data?.items.map((user) => (
+              {data.items.map((user) => (
                 <UserRow key={user.id} user={user} />
               ))}
             </tbody>

@@ -76,3 +76,8 @@ export async function deleteProduct(id: ProductId) {
     const {data} = await api.delete(`/products/${id}`);
     return data;
 }
+
+export async function trackProductView(productId: ProductId) {
+    const {data} = await api.post(`/products/${productId}/view`);
+    return data;
+}

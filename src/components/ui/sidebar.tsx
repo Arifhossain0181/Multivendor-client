@@ -678,6 +678,7 @@ function AppSidebar() {
   const sellerNavItems = [
     { title: "Home", href: "/", icon: Home },
     { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { title: "Products", href: "/shoP/products", icon: Package },
     { title: "My Products", href: "/dashboard/products", icon: Package },
     { title: "Add Product", href: "/dashboard/add-products", icon: Plus },
     { title: "Fulfillments", href: "/dashboard/fulfillments", icon: Truck },

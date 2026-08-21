@@ -1,20 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
-
-import { MenuIcon, Moon, Sun, ShoppingCart } from "lucide-react"; // ShoppingCart
+import { MenuIcon, Moon, Sun, ShoppingCart, Store } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/src/components/ui/accordion";
 import { Button } from "@/src/components/ui/button";
 import {
   NavigationMenu,
@@ -50,25 +42,25 @@ export function ModeToggle() {
     const frame = window.requestAnimationFrame(() => {
       setMounted(true);
     });
-
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
   return (
     <Button
-      variant="outline"
+      variant="ghost"
       size="icon"
       onClick={() =>
         setTheme((resolvedTheme ?? "light") === "dark" ? "light" : "dark")
       }
       aria-label="Toggle theme"
+      className="h-9 w-9 rounded-full hover:bg-primary/10"
     >
       {!mounted ? (
-        <span className="h-5 w-5" aria-hidden="true" />
+        <span className="h-4 w-4" aria-hidden="true" />
       ) : resolvedTheme === "dark" ? (
-        <Sun className="h-5 w-5" />
+        <Sun className="h-4 w-4" />
       ) : (
-        <Moon className="h-5 w-5" />
+        <Moon className="h-4 w-4" />
       )}
     </Button>
   );
@@ -76,10 +68,10 @@ export function ModeToggle() {
 
 function UserInfo({ user }: { user: User }) {
   return (
-    <div className="rounded-xl border border-border bg-background px-4 py-2 text-sm shadow-sm">
-      <p className="font-medium text-foreground">{user.name}</p>
+    <div className="rounded-xl border border-border bg-background px-4 py-2.5 text-sm shadow-sm">
+      <p className="font-semibold text-foreground">{user.name}</p>
       <p className="text-muted-foreground">{user.email}</p>
-      <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+      <p className="text-xs uppercase tracking-[0.2em] text-primary font-medium">
         {user.role}
       </p>
     </div>
@@ -91,7 +83,6 @@ const Navbar5 = ({ className }: Navbar5Props) => {
   const queryClient = useQueryClient();
   const { data: user, isLoading } = useMe();
 
-  // tanstack query use kore cart items fetch kora hocche
   const { data: cart } = useCart();
   const totalItems =
     cart?.items?.reduce((acc: number, item: any) => acc + item.quantity, 0) ||
@@ -106,56 +97,21 @@ const Navbar5 = ({ className }: Navbar5Props) => {
     },
   });
 
-  const features = [
-    {
-      title: "Dashboard",
-      description: "Overview of your activity",
-      href: "#",
-    },
-    {
-      title: "Analytics",
-      description: "Track your performance",
-      href: "#",
-    },
-    {
-      title: "Settings",
-      description: "Configure your preferences",
-      href: "#",
-    },
-    {
-      title: "Integrations",
-      description: "Connect with other tools",
-      href: "#",
-    },
-    {
-      title: "Storage",
-      description: "Manage your files",
-      href: "#",
-    },
-    {
-      title: "Support",
-      description: "Get help when needed",
-      href: "#",
-    },
-  ];
-
   return (
     <section
       className={cn(
-        "py-4 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 sticky top-0 z-50",
+        "sticky top-0 z-50 border-b bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-background/60",
         className,
       )}
     >
       <div className="container mx-auto px-4">
-        <nav className="flex items-center justify-between">
+        <nav className="flex h-16 items-center justify-between lg:h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <img
-              src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/shadcnblockscom-icon.svg"
-              className="max-h-8"
-              alt="Logo"
-            />
-            <span className="text-lg font-semibold tracking-tighter">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md shadow-primary/20 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-primary/30 group-hover:scale-105">
+              <Store className="h-5 w-5" />
+            </div>
+            <span className="text-xl font-bold tracking-tight text-foreground">
               Bazaari
             </span>
           </Link>
@@ -164,48 +120,68 @@ const Navbar5 = ({ className }: Navbar5Props) => {
           <NavigationMenu className="hidden lg:block">
             <NavigationMenuList>
               <NavigationMenuItem>
-                <NavigationMenuTrigger>Features</NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <div className="grid w-150 grid-cols-2 p-3">
-                    {features.map((feature, index) => (
-                      <NavigationMenuLink
-                        href={feature.href}
-                        key={index}
-                        className="rounded-md p-3 transition-colors hover:bg-muted/70"
-                      >
-                        <div>
-                          <p className="mb-1 font-semibold text-foreground">
-                            {feature.title}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {feature.description}
-                          </p>
-                        </div>
-                      </NavigationMenuLink>
-                    ))}
-                  </div>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
                 <NavigationMenuLink
                   href="/shoP/products"
-                  className={navigationMenuTriggerStyle()}
+                  className={cn(
+                    navigationMenuTriggerStyle(),
+                    "text-sm font-medium transition-colors hover:text-primary hover:bg-primary/5"
+                  )}
                 >
                   Products
                 </NavigationMenuLink>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <NavigationMenuLink
-                  href="/module/blog"
-                  className={navigationMenuTriggerStyle()}
+                  href="/#categories"
+                  className={cn(
+                    navigationMenuTriggerStyle(),
+                    "text-sm font-medium transition-colors hover:text-primary hover:bg-primary/5"
+                  )}
                 >
-                  Blog
+                  Categories
                 </NavigationMenuLink>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuTrigger className="text-sm font-medium transition-colors hover:text-primary hover:bg-primary/5">
+                  About
+                </NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[220px] gap-1 p-2">
+                    <li>
+                      <NavigationMenuLink href="/about/company" className="rounded-md p-2 text-sm transition-colors hover:bg-primary/5 hover:text-primary">
+                        About Company
+                      </NavigationMenuLink>
+                    </li>
+                    <li>
+                      <NavigationMenuLink href="/about/awards" className="rounded-md p-2 text-sm transition-colors hover:bg-primary/5 hover:text-primary">
+                        Award & Achievement
+                      </NavigationMenuLink>
+                    </li>
+                    <li>
+                      <NavigationMenuLink href="/about/mission-vision" className="rounded-md p-2 text-sm transition-colors hover:bg-primary/5 hover:text-primary">
+                        Our Mission & Vision
+                      </NavigationMenuLink>
+                    </li>
+                    <li>
+                      <NavigationMenuLink href="/about/message" className="rounded-md p-2 text-sm transition-colors hover:bg-primary/5 hover:text-primary">
+                        Message of Managing Director
+                      </NavigationMenuLink>
+                    </li>
+                    <li>
+                      <NavigationMenuLink href="/about/success-story" className="rounded-md p-2 text-sm transition-colors hover:bg-primary/5 hover:text-primary">
+                        Success Story
+                      </NavigationMenuLink>
+                    </li>
+                  </ul>
+                </NavigationMenuContent>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <NavigationMenuLink
                   href="/seller/apply"
-                  className={navigationMenuTriggerStyle()}
+                  className={cn(
+                    navigationMenuTriggerStyle(),
+                    "text-sm font-medium transition-colors hover:text-primary hover:bg-primary/5"
+                  )}
                 >
                   Seller Application
                 </NavigationMenuLink>
@@ -224,7 +200,7 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                     }
                     className={cn(
                       navigationMenuTriggerStyle(),
-                      "font-medium text-primary",
+                      "font-medium text-primary transition-colors hover:bg-primary/5"
                     )}
                   >
                     {user.role === "ADMIN" && "Admin Panel"}
@@ -237,13 +213,12 @@ const Navbar5 = ({ className }: Navbar5Props) => {
           </NavigationMenu>
 
           {/* Right Controls (Desktop) */}
-          <div className="hidden items-center gap-4 lg:flex">
-            {/*  Global Cart Badge Button */}
-            <Button asChild variant="outline" size="icon" className="relative">
+          <div className="hidden items-center gap-2 lg:flex">
+            <Button asChild variant="ghost" size="icon" className="relative h-9 w-9 rounded-full hover:bg-primary/10 transition-colors">
               <Link href="/cart">
                 <ShoppingCart className="h-5 w-5" />
                 {totalItems > 0 && (
-                  <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground animate-bounce">
+                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
                     {totalItems}
                   </span>
                 )}
@@ -259,16 +234,17 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                   variant="destructive"
                   onClick={() => logoutMutation.mutate()}
                   disabled={logoutMutation.isPending}
+                  className="shadow-sm hover:shadow-md transition-all"
                 >
                   {logoutMutation.isPending ? "Signing out..." : "Sign out"}
                 </Button>
               </div>
             ) : (
               <>
-                <Button asChild variant="outline">
+                <Button asChild variant="ghost" className="hover:bg-primary/5 hover:text-primary">
                   <Link href="/login">Sign in</Link>
                 </Button>
-                <Button asChild>
+                <Button asChild className="shadow-sm hover:shadow-md transition-all">
                   <Link href="/register">Start for free</Link>
                 </Button>
               </>
@@ -276,18 +252,17 @@ const Navbar5 = ({ className }: Navbar5Props) => {
           </div>
 
           {/* Mobile Sheet Wrapper */}
-          <div className="flex items-center gap-4 lg:hidden">
-            {/*  Mobile view Cart Badge */}
+          <div className="flex items-center gap-2 lg:hidden">
             <Button
               asChild
-              variant="outline"
+              variant="ghost"
               size="icon"
-              className="relative mr-2"
+              className="relative h-9 w-9 rounded-full hover:bg-primary/10"
             >
               <Link href="/cart">
                 <ShoppingCart className="h-4 w-4" />
                 {totalItems > 0 && (
-                  <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
                     {totalItems}
                   </span>
                 )}
@@ -296,66 +271,47 @@ const Navbar5 = ({ className }: Navbar5Props) => {
 
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-primary/10">
                   <MenuIcon className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="top" className="max-h-screen overflow-auto">
+              <SheetContent side="top" className="max-h-screen overflow-auto bg-background/95 backdrop-blur-xl">
                 <SheetHeader>
                   <SheetTitle>
-                    <Link href="/" className="flex items-center gap-2">
-                      <img
-                        src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/shadcnblockscom-icon.svg"
-                        className="max-h-8"
-                        alt="Logo"
-                      />
-                      <span className="text-lg font-semibold tracking-tighter">
+                    <Link href="/" className="flex items-center gap-2.5">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md shadow-primary/20">
+                        <Store className="h-5 w-5" />
+                      </div>
+                      <span className="text-xl font-bold tracking-tight">
                         Bazaari
                       </span>
                     </Link>
                   </SheetTitle>
                 </SheetHeader>
                 <div className="flex flex-col p-4">
-                  <Accordion type="single" collapsible className="mt-4 mb-2">
-                    <AccordionItem value="solutions" className="border-none">
-                      <AccordionTrigger className="text-base hover:no-underline">
-                        Features
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="grid md:grid-cols-2">
-                          {features.map((feature, index) => (
-                            <a
-                              href={feature.href}
-                              key={index}
-                              className="rounded-md p-3 transition-colors hover:bg-muted/70"
-                            >
-                              <div>
-                                <p className="mb-1 font-semibold text-foreground">
-                                  {feature.title}
-                                </p>
-                                <p className="text-sm text-muted-foreground">
-                                  {feature.description}
-                                </p>
-                              </div>
-                            </a>
-                          ))}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-
-                  {/* Mobile Links List */}
-                  <div className="flex flex-col gap-6 my-2">
-                    <Link href="/shoP/products" className="font-medium">
+                  <div className="flex flex-col gap-1 my-3">
+                    <Link href="/shoP/products" className="font-medium py-2.5 px-3 rounded-lg hover:bg-primary/5 hover:text-primary transition-colors">
                       Products
                     </Link>
-                    <Link href="/shoP/products" className="font-medium">
-                      Products
+                    <Link href="/#categories" className="font-medium py-2.5 px-3 rounded-lg hover:bg-primary/5 hover:text-primary transition-colors">
+                      Categories
                     </Link>
-                    <Link href="/module/blog" className="font-medium">
-                      Blog
+                    <Link href="/about/company" className="font-medium py-2.5 px-3 rounded-lg hover:bg-primary/5 hover:text-primary transition-colors">
+                      About Company
                     </Link>
-                    <Link href="/seller/apply" className="font-medium">
+                    <Link href="/about/awards" className="font-medium py-2.5 px-3 rounded-lg hover:bg-primary/5 hover:text-primary transition-colors">
+                      Award & Achievement
+                    </Link>
+                    <Link href="/about/mission-vision" className="font-medium py-2.5 px-3 rounded-lg hover:bg-primary/5 hover:text-primary transition-colors">
+                      Our Mission & Vision
+                    </Link>
+                    <Link href="/about/message" className="font-medium py-2.5 px-3 rounded-lg hover:bg-primary/5 hover:text-primary transition-colors">
+                      Message of Managing Director
+                    </Link>
+                    <Link href="/about/success-story" className="font-medium py-2.5 px-3 rounded-lg hover:bg-primary/5 hover:text-primary transition-colors">
+                      Success Story
+                    </Link>
+                    <Link href="/seller/apply" className="font-medium py-2.5 px-3 rounded-lg hover:bg-primary/5 hover:text-primary transition-colors">
                       Seller Application
                     </Link>
 
@@ -369,7 +325,7 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                               ? "/seller"
                               : "/orders"
                         }
-                        className="font-semibold text-primary"
+                        className="font-semibold text-primary py-2.5 px-3 rounded-lg hover:bg-primary/5 transition-colors"
                       >
                         {user.role === "ADMIN" && "Admin Panel "}
                         {user.role === "SELLER" && "Seller Dashboard "}
@@ -378,7 +334,7 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                     )}
                   </div>
 
-                  <div className="mt-6 flex flex-col gap-4">
+                  <div className="mt-6 flex flex-col gap-3">
                     {isLoading ? null : user ? (
                       <>
                         <UserInfo user={user} />
@@ -386,6 +342,7 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                           variant="destructive"
                           onClick={() => logoutMutation.mutate()}
                           disabled={logoutMutation.isPending}
+                          className="shadow-sm"
                         >
                           {logoutMutation.isPending
                             ? "Signing out..."
@@ -394,10 +351,10 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                       </>
                     ) : (
                       <>
-                        <Button asChild variant="outline">
+                        <Button asChild variant="outline" className="hover:bg-primary/5 hover:text-primary hover:border-primary/20">
                           <Link href="/login">Sign in</Link>
                         </Button>
-                        <Button asChild>
+                        <Button asChild className="shadow-sm hover:shadow-md transition-all">
                           <Link href="/register">Start for free</Link>
                         </Button>
                       </>

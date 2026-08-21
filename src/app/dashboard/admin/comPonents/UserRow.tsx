@@ -14,6 +14,13 @@ export default function UserRow({ user }: { user: AdminUser }) {
     ? new Date(user.lastPaidOrderAt).toLocaleDateString()
     : null;
 
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat("en-BD", {
+      style: "currency",
+      currency: "BDT",
+      maximumFractionDigits: 0,
+    }).format(value);
+
   return (
     <tr className="border-b border-gray-50 dark:border-gray-800">
       <td className="px-4 py-3">
@@ -56,7 +63,7 @@ export default function UserRow({ user }: { user: AdminUser }) {
                   }
                   disabled={updateSellerMutation.isPending}
                   className="rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-500 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400"
-                  >
+                >
                   Reject
                 </button>
               </div>
@@ -87,31 +94,33 @@ export default function UserRow({ user }: { user: AdminUser }) {
         </button>
       </td>
       <td className="px-4 py-3">
-        {user.role === "CUSTOMER" ? (
-          <div className="flex flex-col gap-1">
-            <span
-              className={`inline-flex w-fit rounded-full px-2.5 py-1 text-xs font-medium ${
-                hasPaidOrders
-                  ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-                  : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
-              }`}
-            >
-              {hasPaidOrders ? "Paid customer" : "New customer"}
-            </span>
-            <span className="text-[11px] text-gray-400">
-              {hasPaidOrders
-                ? `${user.paidOrderCount} successful payment${user.paidOrderCount === 1 ? "" : "s"}`
-                : "No successful payments yet"}
-            </span>
-            {lastPaidLabel ? (
-              <span className="text-[11px] text-gray-400">
-                Last payment: {lastPaidLabel}
+        <div className="flex flex-col gap-1">
+          {hasPaidOrders ? (
+            <>
+              <span className="inline-flex w-fit rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+                Paid customer
               </span>
-            ) : null}
-          </div>
-        ) : (
-          <span className="text-xs text-gray-400">—</span>
-        )}
+              <span className="text-[11px] text-gray-400">
+                {formatCurrency(user.totalPaidAmount ?? 0)}
+              </span>
+              <span className="text-[11px] text-gray-400">
+                {user.paidOrderCount} successful payment{user.paidOrderCount === 1 ? "" : "s"}
+              </span>
+              {lastPaidLabel ? (
+                <span className="text-[11px] text-gray-400">
+                  Last payment: {lastPaidLabel}
+                </span>
+              ) : null}
+            </>
+          ) : (
+            <>
+              <span className="inline-flex w-fit rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                New customer
+              </span>
+              <span className="text-[11px] text-gray-400">No successful payments yet</span>
+            </>
+          )}
+        </div>
       </td>
     </tr>
   );

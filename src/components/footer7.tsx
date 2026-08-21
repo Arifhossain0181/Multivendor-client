@@ -6,6 +6,7 @@ import {
   FaTwitter,
 } from "react-icons/fa";
 import { cn } from "@/src/libs/utils";
+import Link from "next/link";
 
 interface FooterLink {
   name: string;
@@ -121,24 +122,22 @@ const Footer7 = (props: Props) => {
   };
 
   return (
-    <section className={cn("py-32", className)}>
-      <div className="container mx-auto">
-        <div className="flex w-full flex-col justify-between gap-10 lg:flex-row lg:items-start lg:text-left">
+    <footer className={cn("border-t bg-background", className)}>
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col justify-between gap-10 py-12 lg:flex-row lg:items-start lg:text-left">
           <div className="flex w-full flex-col justify-between gap-6 lg:items-start">
-            <div className="flex items-center gap-2 lg:justify-start">
-              <a href={logo?.url}>
-                <img
-                  src={logo?.src}
-                  alt={logo?.alt}
-                  title={logo?.title}
-                  className="h-7 dark:invert"
-                />
-              </a>
-            </div>
-            <p className="max-w-[70%] text-sm text-muted-foreground">
+            <Link href={logo?.url || "/"} className="flex items-center gap-2">
+              <img
+                src={logo?.src}
+                alt={logo?.alt}
+                title={logo?.title}
+                className="h-7 dark:invert"
+              />
+            </Link>
+            <p className="text-sm text-muted-foreground md:max-w-sm">
               {description}
             </p>
-            <ul className="flex items-center space-x-6 text-muted-foreground">
+            <ul className="flex items-center space-x-5 text-muted-foreground">
               {socialLinks?.map((social, idx) => (
                 <li key={idx} className="font-medium hover:text-primary">
                   <a href={social.href} aria-label={social.label}>
@@ -148,10 +147,10 @@ const Footer7 = (props: Props) => {
               ))}
             </ul>
           </div>
-          <div className="grid w-full gap-6 md:grid-cols-3 lg:gap-20">
-            {sections?.slice(0, 3).map((section, sectionIdx) => (
+          <div className="grid w-full gap-8 sm:grid-cols-2 md:grid-cols-4">
+            {sections?.map((section, sectionIdx) => (
               <div key={sectionIdx}>
-                <h3 className="mb-4 font-semibold tracking-tight">
+                <h3 className="mb-4 font-semibold tracking-tight text-sm">
                   {section.title}
                 </h3>
                 <ul className="space-y-3 text-sm text-muted-foreground">
@@ -168,9 +167,9 @@ const Footer7 = (props: Props) => {
             ))}
           </div>
         </div>
-        <div className="mt-8 flex flex-col justify-between gap-4 border-t border-border py-8 text-xs font-medium text-muted-foreground md:flex-row md:items-center md:text-left">
-          <p className="order-2 lg:order-1">{copyright}</p>
-          <ul className="order-1 flex flex-col gap-2 md:order-2 md:flex-row">
+        <div className="flex flex-col justify-between gap-4 border-t border-border py-6 text-xs font-medium text-muted-foreground md:flex-row md:items-center md:text-left">
+          <p>{copyright}</p>
+          <ul className="flex flex-col gap-2 md:flex-row">
             {legalLinks?.map((link, idx) => (
               <li key={idx} className="hover:text-primary">
                 <a href={link.href}> {link.name}</a>
@@ -179,7 +178,7 @@ const Footer7 = (props: Props) => {
           </ul>
         </div>
       </div>
-    </section>
+    </footer>
   );
 };
 

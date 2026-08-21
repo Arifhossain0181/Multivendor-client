@@ -9,6 +9,7 @@ export interface AdminUser {
   sellerStatus?: SellerStatus;
   shopName?: string;
   paidOrderCount?: number;
+  totalPaidAmount?: number;
   lastPaidOrderAt?: string | null;
   createdAt: string;
   isActive: boolean;

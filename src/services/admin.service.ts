@@ -17,9 +17,10 @@ export const adminService = {
 
   getUsers: async (
     role?: UserRole,
-    page = 1
+    page = 1,
+    hasPaidOrders?: boolean
   ): Promise<{ items: AdminUser[]; total: number; page: number; limit: number }> => {
-    const { data } = await api.get("/admin/users", { params: { role, page } });
+    const { data } = await api.get("/admin/users", { params: { role, page, hasPaidOrders } });
     return data;
   },
 
