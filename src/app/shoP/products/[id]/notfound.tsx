@@ -7,7 +7,7 @@ export default function ProductNotFound() {
       <p className="text-gray-500 mb-6">
         The product you are looking for does not exist or has been deleted.
       </p>
-      <Link href="/products" className="text-blue-600 underline">
+      <Link href="/shoP/products" className="text-blue-600 underline">
          View All Products   
       </Link>
     </div>

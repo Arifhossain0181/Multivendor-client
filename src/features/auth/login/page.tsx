@@ -49,6 +49,7 @@ export default function LoginPage() {
 
       if (user.role === "ADMIN") router.push("/dashboard/admin");
       else if (user.role === "SELLER") router.push("/seller");
+      else if (user.role === "DELIVERY") router.push("/delivery");
       else router.push("/shoP/products");
     },
 

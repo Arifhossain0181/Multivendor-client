@@ -24,7 +24,9 @@ export function useLogin() {
             ? "/dashboard/admin"
             : user.role === "SELLER"
               ? "/seller"
-              : "/shoP/products";
+              : user.role === "DELIVERY"
+                ? "/delivery"
+                : "/shoP/products";
 
         router.replace(destination);
     },

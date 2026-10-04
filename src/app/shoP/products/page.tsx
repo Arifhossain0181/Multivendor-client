@@ -4,6 +4,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useMemo } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Search, ShoppingCart, Star, Filter, Eye,
@@ -58,15 +59,36 @@ function SidebarSkeleton() {
 }
 
 export default function ProductsPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const categoryParam = searchParams.get("category");
+
   const { data: categoriesData, isLoading: categoriesLoading } = useCategories();
   const categories = categoriesData || [];
   const [page, setPage] = useState(1);
-  const [activeCat, setActiveCat] = useState<string | null>(null);
+  const categoryFromSlug = categories.find(c => c.slug === categoryParam)?.id ?? null;
+  const [activeCat, updateCategoryState] = useState<string | null>(categoryFromSlug);
   const [view, setView] = useState<"grid" | "list">("grid");
   const [search, setSearch] = useState("");
   const [minPrice, setMinPrice] = useState<string>("");
   const [maxPrice, setMaxPrice] = useState<string>("");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+
+  const updateCategory = (catId: string | null) => {
+    updateCategoryState(catId);
+    const currentParams = new URLSearchParams(searchParams.toString());
+    if (catId) {
+      const category = categories.find(c => c.id === catId);
+      if (category) {
+        currentParams.set("category", category.slug);
+      }
+    } else {
+      currentParams.delete("category");
+    }
+    const queryString = currentParams.toString();
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+  };
 
   const { data, isLoading, isError, error } = useProducts({ page, pageSize: 12 });
 
@@ -166,7 +188,7 @@ export default function ProductsPage() {
                     </div>
                     <ul className="space-y-1">
                       <li>
-                        <button onClick={() => { setActiveCat(null); setMobileFilterOpen(false); }}
+                        <button onClick={() => { updateCategory(null); setMobileFilterOpen(false); }}
                           className={`relative w-full rounded-lg px-3 py-2 text-left text-sm transition ${activeCat === null
                               ? 'bg-primary/10 text-primary font-medium'
                               : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -179,7 +201,7 @@ export default function ProductsPage() {
                         const active = c.id === activeCat;
                         return (
                           <li key={c.id}>
-                            <button onClick={() => { setActiveCat(c.id); setMobileFilterOpen(false); }}
+                            <button onClick={() => { updateCategory(c.id); setMobileFilterOpen(false); }}
                               className={`relative w-full rounded-lg px-3 py-2 text-left text-sm transition ${active ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                                 }`}>
                               {active && <motion.span layoutId="cat-active" className="absolute inset-y-1 left-0 w-1 rounded-full bg-primary" />}
@@ -210,7 +232,7 @@ export default function ProductsPage() {
               </div>
               <ul className="space-y-1">
                 <li>
-                  <button onClick={() => setActiveCat(null)}
+                  <button onClick={() => updateCategory(null)}
                     className={`relative w-full rounded-lg px-3 py-2 text-left text-sm transition ${activeCat === null
                         ? 'bg-primary/10 text-primary font-medium'
                         : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -223,7 +245,7 @@ export default function ProductsPage() {
                   const active = c.id === activeCat;
                   return (
                     <li key={c.id}>
-                      <button onClick={() => setActiveCat(c.id)}
+                      <button onClick={() => updateCategory(c.id)}
                         className={`relative w-full rounded-lg px-3 py-2 text-left text-sm transition ${active ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                           }`}>
                         {active && <motion.span layoutId="cat-active" className="absolute inset-y-1 left-0 w-1 rounded-full bg-primary" />}

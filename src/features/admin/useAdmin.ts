@@ -81,6 +81,26 @@ export function useAdminFulfillments(page = 1) {
     queryFn: () => adminService.getFulfillments(page),
   });
 }
+
+export function useAdminDeliveryMen(status?: string, page = 1) {
+  return useQuery({
+    queryKey: ["admin", "delivery-men", status ?? "ALL", page],
+    queryFn: () => adminService.getDeliveryMen(status, page),
+  });
+}
+
+export function useUpdateDeliveryManStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ deliveryManId, status }: { deliveryManId: string; status: "PENDING" | "APPROVED" | "REJECTED" }) =>
+      adminService.updateDeliveryManStatus(deliveryManId, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "delivery-men"] });
+      toast.success("Delivery man status updated");
+    },
+    onError: () => toast.error("Failed to update delivery man status"),
+  });
+}
 // Product delete korar API call
 async function deleteProduct(productId: string) {
   await api.delete(`/admin/products/${productId}`);

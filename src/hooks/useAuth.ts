@@ -21,7 +21,9 @@ export const useLogin = () =>{
             }
             if(data.user?.role === 'SELLER'){
                 router.push('/seller/dashboard');
-
+            }
+            if(data.user?.role === 'DELIVERY'){
+                router.push('/delivery');
             }
             else {
                 router.push('/');

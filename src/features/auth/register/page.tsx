@@ -150,6 +150,12 @@ export default function RegisterPage() {
             Sign in
           </Link>
         </p>
+
+        <Link href="/register/delivery" className="block w-full">
+          <Button type="button" variant="outline" className="w-full">
+            Become a Delivery Man
+          </Button>
+        </Link>
       </form>
     </div>
   );

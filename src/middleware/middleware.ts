@@ -5,6 +5,7 @@ import type { NextRequest } from "next/server"
 const ROLE_HOME = {
   ADMIN: "/dashboard/admin",
   SELLER: "/seller",
+  DELIVERY: "/delivery",
   USER: "/",
 } as const
 
@@ -17,13 +18,14 @@ export function middleware(request: NextRequest) {
 
   const isAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/dashboard/admin")
   const isSellerRoute = pathname.startsWith("/seller")
+  const isDeliveryRoute = pathname.startsWith("/delivery")
   const isDashboardRoute = pathname.startsWith("/dashboard")
   const isCartOrCheckout =
     pathname.startsWith("/cart") || pathname.startsWith("/checkout")
   const isAuthRoute =
     pathname.startsWith("/login") || pathname.startsWith("/register")
   const isProtectedRoute =
-    isAdminRoute || isSellerRoute || isDashboardRoute || isCartOrCheckout
+    isAdminRoute || isSellerRoute || isDeliveryRoute || isDashboardRoute || isCartOrCheckout
 
   if (!token && isProtectedRoute) {
     const loginUrl = new URL("/login", request.url)
@@ -46,6 +48,10 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL(home, request.url))
     }
 
+    if (isDeliveryRoute && userRole !== "DELIVERY") {
+      return NextResponse.redirect(new URL(home, request.url))
+    }
+
     if (isCartOrCheckout && userRole !== "USER") {
       return NextResponse.redirect(new URL(home, request.url))
     }
@@ -62,6 +68,7 @@ export const config = {
   matcher: [
     "/admin/:path*",
     "/seller/:path*",
+    "/delivery/:path*",
     "/dashboard/:path*",
     "/cart/:path*",
     "/checkout/:path*",

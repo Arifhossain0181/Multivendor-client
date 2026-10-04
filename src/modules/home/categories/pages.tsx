@@ -48,7 +48,7 @@ export default function HomePage() {
           {categories.map((category) => (
             <Link
               key={category.id}
-              href={`/products?category=${category.slug}`}
+              href={`/shoP/products?category=${category.slug}`}
               className="group relative h-64 rounded-xl overflow-hidden block"
             >
               {/*  - admin category  imageUrl*/}

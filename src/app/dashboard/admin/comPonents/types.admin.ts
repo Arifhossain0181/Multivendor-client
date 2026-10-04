@@ -1,5 +1,6 @@
 export type SellerStatus = "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED";
-export type UserRole = "CUSTOMER" | "SELLER" | "ADMIN";
+export type UserRole = "CUSTOMER" | "SELLER" | "ADMIN" | "DELIVERY";
+export type DeliveryManStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 export interface AdminUser {
   id: string;
@@ -30,10 +31,65 @@ export type AdminProduct = {
   image: string;
   sellerName: string;
   price: number;
-  quantity?: number; //  NEW — total stock quantity
+  quantity?: number;
   status: "DRAFT" | "ACTIVE" | "BLOCKED";
   createdAt: string;
 };
+
+export interface AdminDeliveryMan {
+  id: string;
+  userId: string;
+  firstName?: string;
+  lastName?: string;
+  mobileNumber?: string;
+  gender?: string;
+  dateOfBirth?: string;
+  city: string;
+  serviceType?: string;
+  identityType?: string;
+  identityNumber?: string;
+  referralCode?: string;
+  profilePhoto?: string;
+  vehicleBrand?: string;
+  vehicleModel?: string;
+  registrationNumber?: string;
+  registrationRegion?: string;
+  registrationCategory?: string;
+  registrationDigits?: string;
+  vehicleYear?: string;
+  taxTokenNumber?: string;
+  fitnessNumber?: string;
+  district: string;
+  zela: string;
+  thana: string;
+  area: string;
+  profileImage?: string;
+  vehicleType?: string;
+  vehicleImage?: string;
+  vehicleRegistrationNumber?: string;
+  drivingLicenseNumber?: string;
+  drivingLicenseImage?: string;
+  nidNumber?: string;
+  nidFrontImage?: string;
+  nidBackImage?: string;
+  vehicleRegistrationImage?: string;
+  serviceZones?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  emergencyContactRelation?: string;
+  termsAccepted: boolean;
+  privacyPolicyAccepted: boolean;
+  status: DeliveryManStatus;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: UserRole;
+    isActive: boolean;
+  };
+}
 
 export interface AdminSubOrder {
   id: string;

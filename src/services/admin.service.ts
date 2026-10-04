@@ -4,6 +4,7 @@ import {
   AdminUser,
   AdminProduct,
   AdminOrder,
+  AdminDeliveryMan,
   SellerStatus,
   UserRole,
 } from "../app/dashboard/admin/comPonents/types.admin";
@@ -73,6 +74,24 @@ export const adminService = {
     page = 1
   ): Promise<{ items: any[]; total: number; page: number; limit: number }> => {
     const { data } = await api.get("/admin/fulfillments", { params: { page } });
+    return data;
+  },
+
+  getDeliveryMen: async (
+    status?: string,
+    page = 1
+  ): Promise<{ items: AdminDeliveryMan[]; total: number; page: number; limit: number }> => {
+    const { data } = await api.get("/delivery", { params: { status, page } });
+    return data;
+  },
+
+  updateDeliveryManStatus: async (
+    deliveryManId: string,
+    status: "PENDING" | "APPROVED" | "REJECTED"
+  ): Promise<AdminDeliveryMan> => {
+    const { data } = await api.patch(`/delivery/${deliveryManId}/status`, {
+      status,
+    });
     return data;
   },
 };
