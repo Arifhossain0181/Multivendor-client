@@ -3,12 +3,13 @@
 import { useState } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
-import { Pencil, Trash2 } from "lucide-react"; //  NEW
-import { useRouter } from "next/navigation"; //  NEW
+import { Pencil, Trash2, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   useAdminProducts,
   useUpdateProductStatus,
-  useDeleteProduct, //  NEW
+  useDeleteProduct,
 } from "../../../../features/admin/useAdmin";
 import type { AdminProduct } from "../comPonents/types.admin";
 
@@ -81,6 +82,12 @@ export default function AdminProductsPage() {
             Moderate product listings and keep blocked items out of the catalog.
           </p>
         </div>
+        <Link href="/dashboard/add-products">
+          <button className="inline-flex items-center gap-2 rounded-lg bg-[#0A1F44] px-4 py-2 text-sm font-medium text-white hover:bg-[#0A1F44]/90 dark:bg-cyan-600 dark:hover:bg-cyan-500">
+            <Plus size={16} />
+            Add Product
+          </button>
+        </Link>
       </div>
 
       <div className="mb-4 flex flex-wrap gap-2 border-b border-gray-100 dark:border-gray-800">

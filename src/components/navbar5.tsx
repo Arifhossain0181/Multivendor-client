@@ -196,7 +196,9 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                         ? "/dashboard/admin"
                         : user.role === "SELLER"
                           ? "/seller"
-                          : "/orders"
+                          : user.role === "DELIVERY"
+                            ? "/delivery"
+                            : "/orders"
                     }
                     className={cn(
                       navigationMenuTriggerStyle(),
@@ -205,6 +207,7 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                   >
                     {user.role === "ADMIN" && "Admin Panel"}
                     {user.role === "SELLER" && "Seller Dashboard"}
+                    {user.role === "DELIVERY" && "Delivery Dashboard"}
                     {user.role === "USER" && "My Orders"}
                   </NavigationMenuLink>
                 </NavigationMenuItem>
@@ -323,12 +326,15 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                             ? "/dashboard/admin"
                             : user.role === "SELLER"
                               ? "/seller"
-                              : "/orders"
+                              : user.role === "DELIVERY"
+                                ? "/delivery"
+                                : "/orders"
                         }
                         className="font-semibold text-primary py-2.5 px-3 rounded-lg hover:bg-primary/5 transition-colors"
                       >
                         {user.role === "ADMIN" && "Admin Panel "}
                         {user.role === "SELLER" && "Seller Dashboard "}
+                        {user.role === "DELIVERY" && "Delivery Dashboard "}
                         {user.role === "USER" && "My Orders "}
                       </Link>
                     )}

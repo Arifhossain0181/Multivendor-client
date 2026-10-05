@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { z } from "zod";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { authService } from "../../../services/auth.service";
 import { Input } from "../../../components/ui/input";
@@ -15,13 +15,14 @@ import { Label } from "../../../components/ui/label";
 import { Button } from "../../../components/ui/button";
 
 const deliveryManSchema = z.object({
+  email: z.string().min(1, "Email is required").email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
   firstName: z.string().min(2, "First name is required"),
   lastName: z.string().min(2, "Last name is required"),
   mobileNumber: z.string().min(2, "Mobile number is required"),
   gender: z.string().min(2, "Gender is required"),
   dateOfBirth: z.string().optional(),
   city: z.string().min(2, "City is required"),
-  serviceType: z.string().min(2, "Service type is required"),
   identityType: z.string().min(2, "Identity type is required"),
   identityNumber: z.string().optional(),
   referralCode: z.string().optional(),
@@ -45,39 +46,91 @@ const deliveryManSchema = z.object({
 
 type DeliveryManInput = z.infer<typeof deliveryManSchema>;
 
+type SubmitStatus = "idle" | "validating" | "submitting" | "success" | "error";
+
 export default function DeliveryManRegisterPage() {
   const router = useRouter();
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitStatus, setSubmitStatus] = useState<SubmitStatus>("idle");
+  const [debugInfo, setDebugInfo] = useState<string[]>([]);
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    reset,
+    formState: { errors, isSubmitting },
   } = useForm<DeliveryManInput>({
     resolver: zodResolver(deliveryManSchema),
+    mode: "onChange",
   });
 
   const registerDeliveryMan = useMutation({
     mutationFn: (payload: DeliveryManInput) =>
       authService.registerDeliveryMan({
-        name: `${payload.firstName} ${payload.lastName}`,
-        email: `${payload.mobileNumber}@temp.local`,
-        password: Math.random().toString(36).slice(2),
         ...payload,
+        name: `${payload.firstName} ${payload.lastName}`,
       }),
-
-    onSuccess: () => {
-      toast.success("Delivery man registration successful! Please login.");
-      router.push("/login");
-    },
-
-    onError: (error: any) => {
-      toast.error(error.message || "Registration failed, please try again");
-    },
   });
 
-  const onSubmit = (values: DeliveryManInput) => {
-    registerDeliveryMan.mutate(values);
+  const addDebug = (message: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    setDebugInfo((prev) => [...prev.slice(-4), `[${timestamp}] ${message}`]);
+  };
+
+  const onSubmit = async (values: DeliveryManInput) => {
+    setSubmitError(null);
+    setSubmitStatus("submitting");
+    addDebug("Form submitted, validating...");
+
+    if (selectedServices.length === 0) {
+      const error = "Please select at least one service";
+      setSubmitError(error);
+      setSubmitStatus("error");
+      addDebug(`Validation error: ${error}`);
+      toast.error(error);
+      return;
+    }
+
+    if (!values.termsAccepted || !values.privacyPolicyAccepted) {
+      const error = "Please accept terms and privacy policy";
+      setSubmitError(error);
+      setSubmitStatus("error");
+      addDebug(`Validation error: ${error}`);
+      toast.error(error);
+      return;
+    }
+
+    const payload = {
+      ...values,
+      serviceType: selectedServices.join(", "),
+    };
+
+    addDebug(`Submitting to API: ${JSON.stringify(payload).substring(0, 50)}...`);
+
+    try {
+      await registerDeliveryMan.mutateAsync(payload);
+      setSubmitStatus("success");
+      addDebug("Registration successful!");
+      reset();
+      setSelectedServices([]);
+      setPhotoPreview(null);
+      toast.success("Delivery man registration successful! Please login.");
+      setTimeout(() => router.push("/login"), 1000);
+    } catch (error: any) {
+      const message = error?.message || "Registration failed, please try again";
+      setSubmitStatus("error");
+      setSubmitError(message);
+      addDebug(`Error: ${message}`);
+      toast.error(message);
+    }
+  };
+
+  const toggleService = (service: string) => {
+    setSelectedServices((prev) =>
+      prev.includes(service) ? prev.filter((item) => item !== service) : [...prev, service]
+    );
   };
 
   const inputClassName =
@@ -86,6 +139,16 @@ export default function DeliveryManRegisterPage() {
     "w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-[#0A1F44] focus:ring-2 focus:ring-[#0A1F44]/20 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-cyan-400 dark:focus:ring-cyan-400/20";
   const sectionTitleClassName = "text-lg font-semibold text-gray-900 dark:text-gray-100";
   const sectionDescClassName = "text-xs text-gray-500 dark:text-gray-400";
+
+  const isFormValid = Object.keys(errors).length === 0 && selectedServices.length > 0;
+  const isButtonDisabled = isSubmitting || registerDeliveryMan.isPending || submitStatus === "submitting";
+
+  useEffect(() => {
+    if (submitStatus === "success") {
+      const timer = setTimeout(() => setSubmitStatus("idle"), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [submitStatus]);
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10 dark:bg-gray-900">
@@ -97,7 +160,55 @@ export default function DeliveryManRegisterPage() {
         <div className="mb-6">
           <h1 className={sectionTitleClassName}>Delivery Man Registration</h1>
           <p className={sectionDescClassName}>Fill in the details to register as a delivery man</p>
+          <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700 dark:border-amber-900 dark:bg-amber-900/20 dark:text-amber-300">
+            <p className="font-medium">Note:</p>
+            <p>After registration, your account will be in <strong>PENDING</strong> status. An admin will review your application. Once approved, you can login with the email and password you provide below.</p>
+          </div>
         </div>
+
+        {/* Status indicator */}
+        <div className="mb-4 rounded-lg border p-3 text-sm">
+          <div className="flex items-center gap-2">
+            <div className={`h-2 w-2 rounded-full ${
+              submitStatus === "idle" ? "bg-gray-400" :
+              submitStatus === "validating" ? "bg-yellow-400 animate-pulse" :
+              submitStatus === "submitting" ? "bg-blue-400 animate-pulse" :
+              submitStatus === "success" ? "bg-green-400" :
+              "bg-red-400"
+            }`} />
+            <span className="font-medium">
+              {submitStatus === "idle" && "Ready to submit"}
+              {submitStatus === "validating" && "Validating form..."}
+              {submitStatus === "submitting" && "Submitting registration..."}
+              {submitStatus === "success" && "Registration successful! Redirecting..."}
+              {submitStatus === "error" && "Submission failed"}
+            </span>
+          </div>
+          {!isFormValid && submitStatus === "idle" && (
+            <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+              Please fill all required fields and select at least one service
+            </p>
+          )}
+        </div>
+
+        {submitError && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300">
+            <p className="font-medium">Error:</p>
+            <p>{submitError}</p>
+          </div>
+        )}
+
+        {/* Debug panel */}
+        {debugInfo.length > 0 && (
+          <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs font-mono dark:border-gray-700 dark:bg-gray-800">
+            <p className="mb-1 font-semibold text-gray-700 dark:text-gray-300">Debug Log:</p>
+            {debugInfo.map((info, index) => (
+              <div key={index} className="text-gray-600 dark:text-gray-400">
+                {info}
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* 01 Personal Information */}
         <div className="mb-6 rounded-xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-800">
@@ -141,6 +252,18 @@ export default function DeliveryManRegisterPage() {
             </div>
 
             <div className="flex flex-col gap-1.5">
+              <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
+              <Input id="email" type="email" className={inputClassName} aria-invalid={!!errors.email} {...register("email")} />
+              {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="password">Password <span className="text-red-500">*</span></Label>
+              <Input id="password" type="password" className={inputClassName} aria-invalid={!!errors.password} {...register("password")} />
+              {errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
               <Label htmlFor="city">City <span className="text-red-500">*</span></Label>
               <select id="city" className={selectClassName} {...register("city")}>
                 <option value="">Select City</option>
@@ -155,6 +278,30 @@ export default function DeliveryManRegisterPage() {
               </select>
               {errors.city && <p className="text-xs text-red-500">{errors.city.message}</p>}
             </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="district">District <span className="text-red-500">*</span></Label>
+              <Input id="district" className={inputClassName} placeholder="District" aria-invalid={!!errors.district} {...register("district")} />
+              {errors.district && <p className="text-xs text-red-500">{errors.district.message}</p>}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="zela">Zela / Upazila <span className="text-red-500">*</span></Label>
+              <Input id="zela" className={inputClassName} placeholder="Zela" aria-invalid={!!errors.zela} {...register("zela")} />
+              {errors.zela && <p className="text-xs text-red-500">{errors.zela.message}</p>}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="thana">Thana <span className="text-red-500">*</span></Label>
+              <Input id="thana" className={inputClassName} placeholder="Thana" aria-invalid={!!errors.thana} {...register("thana")} />
+              {errors.thana && <p className="text-xs text-red-500">{errors.thana.message}</p>}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="area">Area <span className="text-red-500">*</span></Label>
+              <Input id="area" className={inputClassName} placeholder="Area" aria-invalid={!!errors.area} {...register("area")} />
+              {errors.area && <p className="text-xs text-red-500">{errors.area.message}</p>}
+            </div>
           </div>
 
           <div className="mt-4">
@@ -165,14 +312,17 @@ export default function DeliveryManRegisterPage() {
                   <input
                     type="checkbox"
                     value={service}
-                    {...register("serviceType")}
+                    checked={selectedServices.includes(service)}
+                    onChange={() => toggleService(service)}
                     className="h-4 w-4 rounded border-gray-300 text-[#0A1F44] focus:ring-[#0A1F44] dark:border-gray-600 dark:bg-gray-700"
                   />
                   <span>{service}</span>
                 </label>
               ))}
             </div>
-            {errors.serviceType && <p className="text-xs text-red-500">{errors.serviceType.message}</p>}
+            {selectedServices.length === 0 && (
+              <p className="text-xs text-red-500">Please select at least one service</p>
+            )}
           </div>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -294,6 +444,143 @@ export default function DeliveryManRegisterPage() {
           </div>
         </div>
 
+        {/* 03 Document Images */}
+        <div className="mb-6 rounded-xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-800">
+          <h2 className={sectionTitleClassName}>03 Document Images</h2>
+          <p className={sectionDescClassName}>Upload required documents</p>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="drivingLicenseImage">Driving License <span className="text-red-500">*</span></Label>
+              <input
+                type="file"
+                id="drivingLicenseImage"
+                accept="image/*"
+                className="text-sm text-gray-500 dark:text-gray-400"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => setPhotoPreview(reader.result as string);
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+              {errors.drivingLicenseImage && <p className="text-xs text-red-500">{errors.drivingLicenseImage.message}</p>}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="nidFrontImage">NID Front <span className="text-red-500">*</span></Label>
+              <input
+                type="file"
+                id="nidFrontImage"
+                accept="image/*"
+                className="text-sm text-gray-500 dark:text-gray-400"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => setPhotoPreview(reader.result as string);
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+              {errors.nidFrontImage && <p className="text-xs text-red-500">{errors.nidFrontImage.message}</p>}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="nidBackImage">NID Back <span className="text-red-500">*</span></Label>
+              <input
+                type="file"
+                id="nidBackImage"
+                accept="image/*"
+                className="text-sm text-gray-500 dark:text-gray-400"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => setPhotoPreview(reader.result as string);
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+              {errors.nidBackImage && <p className="text-xs text-red-500">{errors.nidBackImage.message}</p>}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="registrationCertificateImage">Registration Certificate</Label>
+              <input
+                type="file"
+                id="registrationCertificateImage"
+                accept="image/*"
+                className="text-sm text-gray-500 dark:text-gray-400"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => setPhotoPreview(reader.result as string);
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="taxTokenImage">Tax Token</Label>
+              <input
+                type="file"
+                id="taxTokenImage"
+                accept="image/*"
+                className="text-sm text-gray-500 dark:text-gray-400"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => setPhotoPreview(reader.result as string);
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="fitnessCertificateImage">Fitness Certificate</Label>
+              <input
+                type="file"
+                id="fitnessCertificateImage"
+                accept="image/*"
+                className="text-sm text-gray-500 dark:text-gray-400"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => setPhotoPreview(reader.result as string);
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="routePermitImage">Route Permit</Label>
+              <input
+                type="file"
+                id="routePermitImage"
+                accept="image/*"
+                className="text-sm text-gray-500 dark:text-gray-400"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => setPhotoPreview(reader.result as string);
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
         <div className="flex flex-col gap-2">
           <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
             <input type="checkbox" {...register("termsAccepted")} />
@@ -309,14 +596,65 @@ export default function DeliveryManRegisterPage() {
         </div>
 
         <div className="mt-4 flex gap-3">
-          <Button type="submit" disabled={registerDeliveryMan.isPending}>
-            {registerDeliveryMan.isPending ? "Submitting..." : "Submit"}
+          <Button 
+            type="submit" 
+            disabled={isButtonDisabled}
+            className="min-w-[140px]"
+          >
+            {submitStatus === "submitting" ? (
+              <>
+                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                Submitting...
+              </>
+            ) : submitStatus === "success" ? (
+              "Success!"
+            ) : (
+              "Submit"
+            )}
           </Button>
           <Link href="/register">
-            <Button type="button" variant="outline">
+            <Button type="button" variant="outline" disabled={isButtonDisabled}>
               Back
             </Button>
           </Link>
+        </div>
+
+        {/* Hidden config panel for debugging */}
+        <div className="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4 text-xs dark:border-gray-700 dark:bg-gray-800">
+          <details>
+            <summary className="cursor-pointer font-semibold text-gray-700 dark:text-gray-300">
+              Debug Config (Click to expand)
+            </summary>
+            <div className="mt-3 space-y-2">
+              <div>
+                <p className="font-medium text-gray-600 dark:text-gray-400">Form Validation:</p>
+                <p className="text-gray-600 dark:text-gray-400">Errors: {Object.keys(errors).length}</p>
+                <p className="text-gray-600 dark:text-gray-400">Selected Services: {selectedServices.length}</p>
+                <p className="text-gray-600 dark:text-gray-400">Form Valid: {isFormValid ? "Yes" : "No"}</p>
+              </div>
+              <div>
+                <p className="font-medium text-gray-600 dark:text-gray-400">Button State:</p>
+                <p className="text-gray-600 dark:text-gray-400">Disabled: {isButtonDisabled ? "Yes" : "No"}</p>
+                <p className="text-gray-600 dark:text-gray-400">React Hook Form Submitting: {isSubmitting ? "Yes" : "No"}</p>
+                <p className="text-gray-600 dark:text-gray-400">Mutation Pending: {registerDeliveryMan.isPending ? "Yes" : "No"}</p>
+              </div>
+              <div>
+                <p className="font-medium text-gray-600 dark:text-gray-400">API Status:</p>
+                <p className="text-gray-600 dark:text-gray-400">Base URL: {process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}</p>
+                <p className="text-gray-600 dark:text-gray-400">Endpoint: /delivery/register</p>
+              </div>
+              {Object.keys(errors).length > 0 && (
+                <div>
+                  <p className="font-medium text-red-600 dark:text-red-400">Validation Errors:</p>
+                  {Object.entries(errors).map(([field, error]) => (
+                    <p key={field} className="text-red-600 dark:text-red-400">
+                      {field}: {(error as any)?.message}
+                    </p>
+                  ))}
+                </div>
+              )}
+            </div>
+          </details>
         </div>
       </form>
     </div>

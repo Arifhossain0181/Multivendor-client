@@ -29,6 +29,16 @@ interface SubOrder {
   subtotal: number;
   status: string;
   items: OrderItem[];
+  deliveryManId?: string | null;
+  deliveryMan?: {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    mobileNumber?: string;
+    user?: {
+      name: string;
+    };
+  } | null;
 }
 
 interface Order {
@@ -61,6 +71,26 @@ const STATUS_LABEL: Record<string, string> = {
   COMPLETED: "Completed",
   CANCELLED: "Cancelled",
 };
+
+function getSubOrderStatusLabel(subOrder: SubOrder): string {
+  if (subOrder.status === "SHIPPED" && subOrder.deliveryMan) {
+    return "Shifted to Delivery Man";
+  }
+  if (subOrder.status === "DELIVERED") {
+    return "Successful Delivery";
+  }
+  return STATUS_LABEL[subOrder.status] || subOrder.status;
+}
+
+function getSubOrderStatusStyle(subOrder: SubOrder): string {
+  if (subOrder.status === "SHIPPED" && subOrder.deliveryMan) {
+    return "bg-indigo-500/10 text-indigo-600 border-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-400 dark:border-indigo-800";
+  }
+  if (subOrder.status === "DELIVERED") {
+    return "bg-emerald-500/10 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-800";
+  }
+  return STATUS_STYLE[subOrder.status] || "bg-gray-100 text-gray-500";
+}
 
 const getStatusIcon = (status: string) => {
   switch (status) {
@@ -305,11 +335,17 @@ export default function OrderDetailsPage() {
                         <span className="text-xs font-bold text-muted-foreground uppercase">Package {subIdx + 1}:</span>
                         <span className="text-xs font-mono text-muted-foreground">ID: {subOrder.id.slice(0, 8)}...</span>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${STATUS_STYLE[subOrder.status] || "bg-gray-100 text-gray-500"}`}>
-                          {STATUS_LABEL[subOrder.status] || subOrder.status}
+                     <div className="flex flex-wrap items-center gap-3">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${getSubOrderStatusStyle(subOrder)}`}>
+                          {getSubOrderStatusLabel(subOrder)}
                         </span>
                         <span className="text-sm font-bold text-foreground">৳{Number(subOrder.subtotal).toLocaleString()}</span>
+                        {subOrder.deliveryMan && (
+                          <span className="text-xs text-cyan-600 dark:text-cyan-400 flex items-center gap-1">
+                            <Truck size={12} />
+                            {subOrder.deliveryMan.user?.name || `${subOrder.deliveryMan.firstName ?? ""} ${subOrder.deliveryMan.lastName ?? ""}`.trim() || "Delivery Assigned"}
+                          </span>
+                        )}
                       </div>
                     </div>
 

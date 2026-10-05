@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, Package, ListOrdered, Truck, Home, MessageSquare, UserCog, LucideIcon } from "lucide-react";
+import { LayoutDashboard, Users, Package, ListOrdered, Truck, Home, MessageSquare, UserCog, FolderOpen, ShieldAlert, LucideIcon } from "lucide-react";
 
 export type AdminNavItem = {
   href: string;
@@ -15,7 +15,9 @@ export const adminNavItems: AdminNavItem[] = [
   { href: "/dashboard/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/admin/users", label: "Users & Sellers", icon: Users },
   { href: "/dashboard/admin/products", label: "Products", icon: Package },
+  { href: "/dashboard/admin/categories", label: "Categories", icon: FolderOpen },
   { href: "/dashboard/admin/orders", label: "Orders", icon: ListOrdered },
+  { href: "/dashboard/admin/returns", label: "Returns & Disputes", icon: ShieldAlert },
   { href: "/dashboard/admin/fulfillments", label: "Fulfillments", icon: Truck },
   { href: "/dashboard/admin/delivery-men", label: "Delivery Men", icon: UserCog },
   { href: "/dashboard/admin/message", label: "Message", icon: MessageSquare },

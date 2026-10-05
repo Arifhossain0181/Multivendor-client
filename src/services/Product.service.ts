@@ -27,6 +27,7 @@ export type Product = {
     description: string;
     stock: number;
     categoryId?: string;
+    sellerId?: string;
     variants?: ProductVariant[];
     viewCount?: number;
     reviewCount?: number;

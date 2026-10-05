@@ -23,7 +23,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/src/components/ui/tooltip"
-import { LayoutDashboard, ShoppingCart, Package, ListOrdered, PanelLeftIcon, Plus, Home, Truck } from "lucide-react"
+import { LayoutDashboard, ShoppingCart, Package, ListOrdered, PanelLeftIcon, Plus, Home, Truck, ShieldAlert } from "lucide-react"
 import { useMe } from "@/src/features/auth/loginsstanstack/useMe"
 import { adminNavItems } from "@/src/app/dashboard/admin/comPonents/AdminSidebar"
 
@@ -672,6 +672,7 @@ function AppSidebar() {
     { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { title: "Products", href: "/shoP/products", icon: Package },
     { title: "My Orders", href: "/dashboard/orders", icon: ListOrdered },
+    { title: "Returns", href: "/dashboard/returns", icon: ShieldAlert },
     { title: "Cart", href: "/cart", icon: ShoppingCart },
   ]
 
@@ -682,6 +683,7 @@ function AppSidebar() {
     { title: "My Products", href: "/dashboard/products", icon: Package },
     { title: "Add Product", href: "/dashboard/add-products", icon: Plus },
     { title: "Fulfillments", href: "/dashboard/fulfillments", icon: Truck },
+    { title: "Returns", href: "/dashboard/seller/returns", icon: ShieldAlert },
   ]
 
   const isAdmin = user?.role === "ADMIN"

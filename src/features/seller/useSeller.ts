@@ -24,3 +24,19 @@ export function useUpdateSubOrderStatus() {
     },
   });
 }
+
+export function useAssignDeliveryMan() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ subOrderId, deliveryManId }: { subOrderId: string; deliveryManId: string }) =>
+      sellerService.assignDeliveryMan(subOrderId, deliveryManId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["seller", "fulfillments"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
+      toast.success("Delivery man assigned successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "Failed to assign delivery man");
+    },
+  });
+}

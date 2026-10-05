@@ -66,13 +66,16 @@ export interface AdminDeliveryMan {
   profileImage?: string;
   vehicleType?: string;
   vehicleImage?: string;
-  vehicleRegistrationNumber?: string;
+  vehicleRegistrationImage?: string;
   drivingLicenseNumber?: string;
   drivingLicenseImage?: string;
+  registrationCertificateImage?: string;
+  taxTokenImage?: string;
+  fitnessCertificateImage?: string;
+  routePermitImage?: string;
   nidNumber?: string;
   nidFrontImage?: string;
   nidBackImage?: string;
-  vehicleRegistrationImage?: string;
   serviceZones?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
@@ -80,6 +83,7 @@ export interface AdminDeliveryMan {
   termsAccepted: boolean;
   privacyPolicyAccepted: boolean;
   status: DeliveryManStatus;
+  rejectionReason?: string;
   createdAt: string;
   updatedAt: string;
   user: {
@@ -98,6 +102,12 @@ export interface AdminSubOrder {
   subtotal: number;
   itemCount: number;
   createdAt?: string;
+  deliveryManId?: string | null;
+  deliveryMan?: {
+    id: string;
+    name: string;
+    mobileNumber?: string;
+  } | null;
 }
 
 export interface AdminOrder {

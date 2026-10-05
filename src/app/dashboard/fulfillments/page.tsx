@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -16,12 +16,14 @@ import {
   ShieldAlert,
   PackageOpen,
   Calendar,
+  UserPlus,
 } from "lucide-react";
 import { sellerService } from "@/src/services/seller.service";
-import { useUpdateSubOrderStatus } from "@/src/features/seller/useSeller";
+import { useUpdateSubOrderStatus, useAssignDeliveryMan } from "@/src/features/seller/useSeller";
 import { Skeleton } from "@/src/components/ui/skeleton";
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
+import { api } from "@/src/lib/axios";
 
 interface SubOrderItem {
   id: string;
@@ -39,13 +41,19 @@ interface SubOrder {
   items: SubOrderItem[];
   masterOrderId: string;
   createdAt: string;
+  deliveryManId?: string | null;
+  deliveryMan?: {
+    id: string;
+    name: string;
+    mobileNumber?: string;
+  } | null;
 }
 
 const SUB_STATUS_STYLE: Record<string, string> = {
   PENDING: "bg-amber-500/10 text-amber-600 border-amber-200 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-800",
   CONFIRMED: "bg-sky-500/10 text-sky-600 border-sky-200 dark:bg-sky-500/20 dark:text-sky-400 dark:border-sky-800",
   SHIPPED: "bg-indigo-500/10 text-indigo-600 border-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-400 dark:border-indigo-800",
-  DELIVERED: "bg-emerald-500/10 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-800",
+  DELIVERED: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400 dark:border-emerald-800",
   CANCELLED: "bg-red-500/10 text-red-600 border-red-200 dark:bg-red-500/20 dark:text-red-400 dark:border-red-800",
 };
 
@@ -114,10 +122,121 @@ function FulfillmentCardSkeleton() {
   );
 }
 
+function AssignDeliveryModal({
+  subOrderId,
+  currentDeliveryManId,
+  onClose,
+  onAssigned,
+}: {
+  subOrderId: string;
+  currentDeliveryManId?: string | null;
+  onClose: () => void;
+  onAssigned: () => void;
+}) {
+  const [deliveryMen, setDeliveryMen] = useState<{ id: string; name: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedId, setSelectedId] = useState(currentDeliveryManId || "");
+  const assignMutation = useAssignDeliveryMan();
+
+  useEffect(() => {
+    const fetchDeliveryMen = async () => {
+      try {
+        const { data } = await api.get("/delivery/approved");
+        const items = (data as any)?.data?.items || (data as any)?.items || [];
+        setDeliveryMen(
+          items.map((dm: any) => ({
+            id: dm.id,
+            name: dm.user?.name || `${dm.firstName ?? ""} ${dm.lastName ?? ""}`.trim() || "Unknown",
+          }))
+        );
+      } catch {
+        setDeliveryMen([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDeliveryMen();
+  }, []);
+
+  const handleAssign = () => {
+    if (!selectedId) {
+      toast.error("Please select a delivery man");
+      return;
+    }
+    assignMutation.mutate(
+      { subOrderId, deliveryManId: selectedId },
+      {
+        onSuccess: () => {
+          toast.success("Delivery man assigned successfully");
+          onAssigned();
+          onClose();
+        },
+        onError: (error: any) => {
+          toast.error(error?.message || "Failed to assign delivery man");
+        },
+      }
+    );
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-gray-900">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-50">
+            Assign Delivery Man
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+            <span className="text-xl">&times;</span>
+          </button>
+        </div>
+        <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+          Select an approved delivery man for this sub-order.
+        </p>
+        {loading ? (
+          <div className="h-10 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" />
+        ) : deliveryMen.length === 0 ? (
+          <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+            No approved delivery men available.
+          </p>
+        ) : (
+          <select
+            value={selectedId}
+            onChange={(e) => setSelectedId(e.target.value)}
+            className="mb-4 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+          >
+            <option value="">Select delivery man...</option>
+            {deliveryMen.map((dm) => (
+              <option key={dm.id} value={dm.id}>
+                {dm.name}
+              </option>
+            ))}
+          </select>
+        )}
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleAssign}
+            disabled={assignMutation.isPending || !selectedId}
+            className="rounded-lg bg-[#0A1F44] px-4 py-2 text-sm font-medium text-white hover:bg-[#0A1F44]/90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-cyan-600 dark:hover:bg-cyan-500"
+          >
+            {assignMutation.isPending ? "Assigning..." : "Assign"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function SellerFulfillmentsPage() {
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [assigningSubOrderId, setAssigningSubOrderId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data, isLoading, isError, error } = useQuery({
@@ -127,7 +246,7 @@ export default function SellerFulfillmentsPage() {
 
   const updateStatus = useUpdateSubOrderStatus();
 
-  const subOrders = data?.subOrders ?? [];
+  const subOrders = (data?.subOrders ?? []) as SubOrder[];
   const meta = data?.meta;
 
   const filteredSubOrders = useMemo(() => {
@@ -338,6 +457,12 @@ export default function SellerFulfillmentsPage() {
                         <div className="font-semibold text-foreground">
                           ৳{Number(subOrder.subtotal).toLocaleString()}
                         </div>
+                        {subOrder.deliveryMan && (
+                          <div className="flex items-center gap-1.5 text-cyan-600 dark:text-cyan-400">
+                            <UserPlus size={14} />
+                            <span>{subOrder.deliveryMan.name}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -369,8 +494,27 @@ export default function SellerFulfillmentsPage() {
                               ))}
                             </div>
 
-                            {/* Action Button */}
-                            <div className="mt-6 flex justify-end">
+                            {/* Delivery Assignment & Action Buttons */}
+                            <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+                              <div>
+                                {subOrder.deliveryMan ? (
+                                  <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-50 px-3 py-1.5 text-xs font-medium text-cyan-700 dark:bg-cyan-900/20 dark:text-cyan-400">
+                                    <UserPlus size={14} />
+                                    {subOrder.deliveryMan.name}
+                                  </span>
+                                ) : (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setAssigningSubOrderId(subOrder.id);
+                                    }}
+                                    className="inline-flex items-center gap-1.5 rounded-full border border-cyan-200 px-3 py-1.5 text-xs font-medium text-cyan-700 hover:bg-cyan-50 dark:border-cyan-800 dark:text-cyan-400 dark:hover:bg-cyan-900/20"
+                                  >
+                                    <UserPlus size={14} />
+                                    Assign Delivery Man
+                                  </button>
+                                )}
+                              </div>
                               <Button
                                 onClick={() => handleStatusUpdate(subOrder.id, subOrder.status)}
                                 disabled={updateStatus.isPending || !nextStatus}
@@ -400,6 +544,17 @@ export default function SellerFulfillmentsPage() {
         </motion.div>
       )}
 
+      {assigningSubOrderId && (
+        <AssignDeliveryModal
+          subOrderId={assigningSubOrderId}
+          currentDeliveryManId={filteredSubOrders.find((so) => so.id === assigningSubOrderId)?.deliveryManId ?? null}
+          onClose={() => setAssigningSubOrderId(null)}
+          onAssigned={() => {
+            setAssigningSubOrderId(null);
+          }}
+        />
+      )}
+
       {/* Pagination */}
       {meta && meta.totalPages > 1 && !isLoading && (
         <motion.div
@@ -421,7 +576,7 @@ export default function SellerFulfillmentsPage() {
           <Button
             variant="outline"
             onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
-            disabled={page === meta.totalPages}
+            disabled={page >= meta.totalPages}
             className="rounded-xl"
           >
             Next

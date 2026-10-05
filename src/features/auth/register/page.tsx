@@ -151,11 +151,15 @@ export default function RegisterPage() {
           </Link>
         </p>
 
-        <Link href="/register/delivery" className="block w-full">
-          <Button type="button" variant="outline" className="w-full">
-            Become a Delivery Man
-          </Button>
-        </Link>
+        <div className="mt-4 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm text-blue-700 dark:border-blue-900 dark:bg-blue-900/20 dark:text-blue-300">
+          <p className="font-medium">Want to become a Delivery Man?</p>
+          <p className="mt-1">
+            Register directly as a Delivery Man here. After registration, your account will be in PENDING status. An admin will review your application. Once approved, you can login with the email and password you provide below.
+          </p>
+          <Link href="/register/delivery" className="mt-2 inline-block text-blue-600 underline dark:text-blue-400">
+            Register as Delivery Man
+          </Link>
+        </div>
       </form>
     </div>
   );

@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
+import { Truck } from "lucide-react";
 
 interface OrderItem {
   id: string;
@@ -18,6 +19,16 @@ interface SubOrder {
   subtotal: number;
   status: string;
   items: OrderItem[];
+  deliveryManId?: string | null;
+  deliveryMan?: {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    mobileNumber?: string;
+    user?: {
+      name: string;
+    };
+  } | null;
 }
 
 interface Order {
@@ -173,18 +184,26 @@ export default function OrdersPage() {
                     )}
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-gray-50 flex justify-between items-center">
-                    <p className="text-xs text-gray-400">
-                      {new Date(order.createdAt).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </p>
-                    <p className="text-base font-bold text-gray-900">
-                      ${Number(order.totalAmount).toFixed(2)}
-                    </p>
-                  </div>
+                   <div className="mt-4 pt-4 border-t border-gray-50 flex justify-between items-center flex-wrap gap-3">
+                     <div className="flex items-center gap-2">
+                       <p className="text-xs text-gray-400">
+                         {new Date(order.createdAt).toLocaleDateString("en-US", {
+                           year: "numeric",
+                           month: "short",
+                           day: "numeric",
+                         })}
+                       </p>
+                       {order.subOrders.some((so) => so.deliveryMan) && (
+                         <span className="text-xs text-cyan-600 dark:text-cyan-400 flex items-center gap-1">
+                           <Truck size={12} />
+                           Delivery Assigned
+                         </span>
+                       )}
+                     </div>
+                     <p className="text-base font-bold text-gray-900">
+                       ${Number(order.totalAmount).toFixed(2)}
+                     </p>
+                   </div>
                 </div>
               </Link>
             );

@@ -10,6 +10,7 @@ import { use, useEffect } from "react";
 import { motion } from "motion/react";
 import { toast } from "sonner";
 import { ChevronLeft, Star, Eye, ShoppingCart, Minus, Plus, Truck, Shield, RotateCcw, Check } from "lucide-react";
+import ReviewSection from "@/src/features/reviews/ReviewSection";
 
 type ProductDetailPageProps = {
   params: Promise<{
@@ -287,6 +288,15 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
             </div>
           </div>
         </motion.div>
+
+        <div className="mt-12">
+          <ReviewSection
+            productId={product.id}
+            sellerId={product.sellerId}
+            averageRating={product.averageRating}
+            reviewCount={product.reviewCount}
+          />
+        </div>
       </div>
     </div>
   );

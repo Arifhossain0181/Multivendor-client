@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { adminService, createCategory, deleteCategory, updateCategory } from "../../services/admin.service";
+import { adminService, createCategory, deleteCategory, updateCategory, deleteDeliveryMan } from "../../services/admin.service";
 import {
   SellerStatus,
   UserRole,
@@ -82,6 +82,22 @@ export function useAdminFulfillments(page = 1) {
   });
 }
 
+export function useAssignDeliveryMan() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ subOrderId, deliveryManId }: { subOrderId: string; deliveryManId: string }) =>
+      adminService.assignDeliveryMan(subOrderId, deliveryManId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "fulfillments"] });
+      toast.success("Delivery man assigned successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "Failed to assign delivery man");
+    },
+  });
+}
+
 export function useAdminDeliveryMen(status?: string, page = 1) {
   return useQuery({
     queryKey: ["admin", "delivery-men", status ?? "ALL", page],
@@ -92,13 +108,25 @@ export function useAdminDeliveryMen(status?: string, page = 1) {
 export function useUpdateDeliveryManStatus() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ deliveryManId, status }: { deliveryManId: string; status: "PENDING" | "APPROVED" | "REJECTED" }) =>
-      adminService.updateDeliveryManStatus(deliveryManId, status),
+    mutationFn: ({ deliveryManId, status, rejectionReason }: { deliveryManId: string; status: "PENDING" | "APPROVED" | "REJECTED"; rejectionReason?: string }) =>
+      adminService.updateDeliveryManStatus(deliveryManId, status, rejectionReason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "delivery-men"] });
       toast.success("Delivery man status updated");
     },
     onError: () => toast.error("Failed to update delivery man status"),
+  });
+}
+
+export function useDeleteDeliveryMan() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteDeliveryMan,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "delivery-men"] });
+      toast.success("Delivery man deleted");
+    },
+    onError: () => toast.error("Failed to delete delivery man"),
   });
 }
 // Product delete korar API call

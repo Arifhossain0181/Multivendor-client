@@ -8,7 +8,7 @@ import {
   ShoppingBag, Clock, CheckCircle2,
   AlertTriangle, ArrowRight, ShieldAlert,
   Calendar, CreditCard, ChevronRight, PackageOpen,
-  Search, SlidersHorizontal, X,
+  Search, SlidersHorizontal, X, Truck,
 } from 'lucide-react';
 import { api } from '@/src/lib/axios';
 import { Skeleton } from '@/src/components/ui/skeleton';
@@ -29,6 +29,16 @@ interface SubOrder {
   subtotal: number;
   status: string;
   items: OrderItem[];
+  deliveryManId?: string | null;
+  deliveryMan?: {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    mobileNumber?: string;
+    user?: {
+      name: string;
+    };
+  } | null;
 }
 
 interface Order {
@@ -66,6 +76,26 @@ const STATUS_LABEL: Record<string, string> = {
   DELIVERED: 'Delivered',
   CANCELLED: 'Cancelled',
 };
+
+function getSubOrderStatusLabel(subOrder: SubOrder): string {
+  if (subOrder.status === 'SHIPPED' && subOrder.deliveryMan) {
+    return 'Shifted to Delivery Man';
+  }
+  if (subOrder.status === 'DELIVERED') {
+    return 'Successful Delivery';
+  }
+  return STATUS_LABEL[subOrder.status] || subOrder.status;
+}
+
+function getSubOrderStatusStyle(subOrder: SubOrder): string {
+  if (subOrder.status === 'SHIPPED' && subOrder.deliveryMan) {
+    return 'bg-indigo-500/10 text-indigo-600 border-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-400 dark:border-indigo-800';
+  }
+  if (subOrder.status === 'DELIVERED') {
+    return 'bg-emerald-500/10 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-800';
+  }
+  return STATUS_STYLE[subOrder.status] || 'bg-gray-100 text-gray-500';
+}
 
 const getStatusIcon = (status: string) => {
   switch (status) {
@@ -461,9 +491,17 @@ export default function OrdersPage() {
 
                         {/* Order Card Footer */}
                         <div className="pt-4 border-t border-border flex justify-between items-center flex-wrap gap-3">
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-                            <Calendar size={14} />
-                            <span>Ordered on {formattedDate}</span>
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+                              <Calendar size={14} />
+                              <span>Ordered on {formattedDate}</span>
+                            </div>
+                            {order.subOrders.some((so) => so.deliveryMan) && (
+                              <span className="inline-flex items-center gap-1 text-xs font-medium text-cyan-600 dark:text-cyan-400">
+                                <Truck size={14} />
+                                Delivery Assigned
+                              </span>
+                            )}
                           </div>
                           <div className="flex items-center gap-4">
                             <div className="text-right">

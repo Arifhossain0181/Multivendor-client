@@ -31,6 +31,10 @@ export interface DeliveryManInput {
   vehicleRegistrationNumber?: string;
   drivingLicenseNumber?: string;
   drivingLicenseImage?: string;
+  registrationCertificateImage?: string;
+  taxTokenImage?: string;
+  fitnessCertificateImage?: string;
+  routePermitImage?: string;
   nidNumber?: string;
   nidFrontImage?: string;
   nidBackImage?: string;

@@ -6,9 +6,26 @@ import CartSellerGroup from "./CartSellerGroup";
 import CartSummary from "./CartSummary";
 import EmptyCart from "./EmptyCart";
 import { Loader2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { CART_QUERY_KEY } from "../../features/cart/useCart";
+import { useEffect } from "react";
 
 export default function CartPage() {
+  const queryClient = useQueryClient();
   const { data: cart, isLoading, isError } = useCart();
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [queryClient]);
 
   if (isLoading) {
     return (

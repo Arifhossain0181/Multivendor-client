@@ -3,7 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMe } from "@/src/features/auth/loginsstanstack/useMe";
 import { api } from "@/src/lib/axios";
-import { Loader2, MapPin, User, Mail, Shield } from "lucide-react";
+import { Skeleton } from "@/src/components/ui/skeleton";
+import { Loader2, MapPin, User, Mail, Shield, Calendar } from "lucide-react";
 
 type DeliveryProfile = {
   id: string;
@@ -22,7 +23,7 @@ type DeliveryProfile = {
   };
 };
 
-export default function DeliveryDashboardPage() {
+export default function DeliveryProfilePage() {
   const { data: user, isLoading: userLoading } = useMe();
 
   const { data, isLoading } = useQuery({
@@ -36,15 +37,43 @@ export default function DeliveryDashboardPage() {
 
   if (userLoading || isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="mx-auto max-w-2xl px-4 py-10">
+        <div className="mb-6">
+          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          <div className="flex items-center justify-between">
+            <div>
+              <Skeleton className="h-4 w-16 mb-2" />
+              <Skeleton className="h-6 w-24" />
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+              <div key={i} className="flex items-center gap-3">
+                <Skeleton className="h-4 w-4 rounded-full" />
+                <div className="flex-1">
+                  <Skeleton className="h-3 w-20 mb-1" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6">
+            <Skeleton className="h-3 w-32 mb-1" />
+            <Skeleton className="h-3 w-40" />
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!data) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-[60vh] items-center justify-center">
         <p className="text-sm text-gray-500">No delivery profile found.</p>
       </div>
     );
@@ -61,7 +90,7 @@ export default function DeliveryDashboardPage() {
     <div className="mx-auto max-w-2xl px-4 py-10">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-50">
-          Delivery Dashboard
+          Delivery Profile
         </h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           View your delivery profile and current status.
@@ -136,9 +165,12 @@ export default function DeliveryDashboardPage() {
           </div>
         </div>
 
-        <div className="mt-6 text-xs text-gray-500 dark:text-gray-400">
-          <p>Created: {new Date(data.createdAt).toLocaleString()}</p>
-          <p>Updated: {new Date(data.updatedAt).toLocaleString()}</p>
+        <div className="mt-6 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+          <Calendar size={14} />
+          <div>
+            <p>Created: {new Date(data.createdAt).toLocaleString()}</p>
+            <p>Updated: {new Date(data.updatedAt).toLocaleString()}</p>
+          </div>
         </div>
       </div>
     </div>

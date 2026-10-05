@@ -85,41 +85,52 @@ export const adminService = {
     return data;
   },
 
+  assignDeliveryMan: async (subOrderId: string, deliveryManId: string) => {
+    const { data } = await api.patch(`/admin/sub-orders/${subOrderId}/assign-delivery`, {
+      deliveryManId,
+    });
+    return data;
+  },
+
   updateDeliveryManStatus: async (
     deliveryManId: string,
-    status: "PENDING" | "APPROVED" | "REJECTED"
+    status: "PENDING" | "APPROVED" | "REJECTED",
+    rejectionReason?: string
   ): Promise<AdminDeliveryMan> => {
     const { data } = await api.patch(`/delivery/${deliveryManId}/status`, {
       status,
+      rejectionReason,
     });
     return data;
   },
 };
 export async function getAdminCategories({ page = 1, limit = 10 }: { page?: number; limit?: number } = {}) {
-  const { data } = await api.get("/admin/categories", {
+  const { data } = await api.get("/categories", {
     params: { page, limit },
   });
-  return data; // { items: [{ id, name, slug, description, productCount, createdAt }], total, page, limit }
+  return data;
 }
- 
-// --------  category --------
+  
 export async function createCategory({ name, description, imageUrl }: { name: string; description: string; imageUrl?: string }) {
-  const { data } = await api.post("/admin/categories", {
+  const { data } = await api.post("/categories", {
     name,
     description,
     imageUrl,
   });
   return data;
 }
- 
-// -------- category update --------
+  
 export async function updateCategory(categoryId: string, payload: { name?: string; description?: string; imageUrl?: string }) {
-  const { data } = await api.patch(`/admin/categories/${categoryId}`, payload);
+  const { data } = await api.patch(`/categories/${categoryId}`, payload);
   return data;
 }
- 
-// -------- category delete --------
+  
 export async function deleteCategory(categoryId: string) {
-  const { data } = await api.delete(`/admin/categories/${categoryId}`);
+  const { data } = await api.delete(`/categories/${categoryId}`);
+  return data;
+}
+
+export async function deleteDeliveryMan(deliveryManId: string) {
+  const { data } = await api.delete(`/delivery/${deliveryManId}`);
   return data;
 }

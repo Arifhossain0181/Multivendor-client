@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useAdminOrders } from "../../../../features/admin/useAdmin";
+import { useAdminDeliveryMen, useAssignDeliveryMan } from "../../../../features/admin/useAdmin";
+import { toast } from "sonner";
 
 const statusTone: Record<string, string> = {
   PENDING_PAYMENT: "bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:ring-amber-900/40",
@@ -33,9 +35,101 @@ const formatDate = (value?: string) =>
       }).format(new Date(value))
     : "N/A";
 
+function AssignDeliveryModal({
+  subOrderId,
+  currentDeliveryManId,
+  onClose,
+  onAssigned,
+}: {
+  subOrderId: string;
+  currentDeliveryManId?: string | null;
+  onClose: () => void;
+  onAssigned: () => void;
+}) {
+  const { data: deliveryMenData, isLoading: deliveryMenLoading } = useAdminDeliveryMen("APPROVED");
+  const assignMutation = useAssignDeliveryMan();
+  const [selectedId, setSelectedId] = useState(currentDeliveryManId || "");
+
+  const deliveryMen = (deliveryMenData as any)?.data?.items || (deliveryMenData as any)?.items || [];
+
+  const handleAssign = () => {
+    if (!selectedId) {
+      toast.error("Please select a delivery man");
+      return;
+    }
+    assignMutation.mutate(
+      { subOrderId, deliveryManId: selectedId },
+      {
+        onSuccess: () => {
+          toast.success("Delivery man assigned successfully");
+          onAssigned();
+          onClose();
+        },
+        onError: (error: any) => {
+          toast.error(error?.message || "Failed to assign delivery man");
+        },
+      }
+    );
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-gray-900">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-50">
+            Assign Delivery Man
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+            <span className="text-xl">&times;</span>
+          </button>
+        </div>
+        <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+          Select an approved delivery man for this sub-order.
+        </p>
+        {deliveryMenLoading ? (
+          <div className="h-10 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" />
+        ) : deliveryMen.length === 0 ? (
+          <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+            No approved delivery men available.
+          </p>
+        ) : (
+          <select
+            value={selectedId}
+            onChange={(e) => setSelectedId(e.target.value)}
+            className="mb-4 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+          >
+            <option value="">Select delivery man...</option>
+            {deliveryMen.map((dm: any) => (
+              <option key={dm.id} value={dm.id}>
+                {dm.user?.name || `${dm.firstName ?? ""} ${dm.lastName ?? ""}`.trim() || "Unknown"} ({dm.district}, {dm.city})
+              </option>
+            ))}
+          </select>
+        )}
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleAssign}
+            disabled={assignMutation.isPending || !selectedId}
+            className="rounded-lg bg-[#0A1F44] px-4 py-2 text-sm font-medium text-white hover:bg-[#0A1F44]/90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-cyan-600 dark:hover:bg-cyan-500"
+          >
+            {assignMutation.isPending ? "Assigning..." : "Assign"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminOrdersPage() {
   const [page, setPage] = useState(1);
   const { data, isLoading } = useAdminOrders(page);
+  const [assigningSubOrderId, setAssigningSubOrderId] = useState<string | null>(null);
   const orders = data?.items ?? [];
   const pageSize = data?.limit ?? 10;
   const totalPages = data ? Math.max(1, Math.ceil(data.total / pageSize)) : 1;
@@ -127,7 +221,7 @@ export default function AdminOrdersPage() {
           </div>
         ) : orders.length ? (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1100px] text-left text-sm">
+            <table className="w-full min-w-[1200px] text-left text-sm">
               <thead className="bg-gray-50 text-gray-500 dark:bg-gray-900/80 dark:text-gray-400">
                 <tr>
                   <th className="px-5 py-3 font-medium">Order ID</th>
@@ -140,6 +234,7 @@ export default function AdminOrdersPage() {
                   <th className="px-5 py-3 font-medium">Seller Status</th>
                   <th className="px-5 py-3 font-medium">Subtotal</th>
                   <th className="px-5 py-3 font-medium">Items</th>
+                  <th className="px-5 py-3 font-medium">Delivery Man</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -172,7 +267,7 @@ export default function AdminOrdersPage() {
                         <td className="px-5 py-4 font-medium text-gray-900 dark:text-gray-50">
                           {formatCurrency(order.totalAmount)}
                         </td>
-                        <td className="px-5 py-4 text-gray-400 dark:text-gray-500" colSpan={4}>
+                        <td className="px-5 py-4 text-gray-400 dark:text-gray-500" colSpan={5}>
                           No sub-orders
                         </td>
                       </tr>
@@ -248,6 +343,28 @@ export default function AdminOrdersPage() {
                       <td className="px-5 py-4 text-gray-700 dark:text-gray-200">
                         {subOrder.itemCount}
                       </td>
+                      <td className="px-5 py-4">
+                        {subOrder.deliveryMan ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-gray-900 dark:text-gray-50">
+                              {subOrder.deliveryMan.name}
+                            </span>
+                            <button
+                              onClick={() => setAssigningSubOrderId(subOrder.id)}
+                              className="text-xs text-cyan-600 hover:text-cyan-700 dark:text-cyan-400"
+                            >
+                              Change
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setAssigningSubOrderId(subOrder.id)}
+                            className="text-xs font-medium text-cyan-600 hover:text-cyan-700 dark:text-cyan-400"
+                          >
+                            Assign
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ));
                 })}
@@ -270,6 +387,17 @@ export default function AdminOrdersPage() {
           </div>
         )}
       </div>
+
+      {assigningSubOrderId && (
+        <AssignDeliveryModal
+          subOrderId={assigningSubOrderId}
+          currentDeliveryManId={orders.flatMap((o) => o.subOrders).find((so) => so.id === assigningSubOrderId)?.deliveryManId ?? null}
+          onClose={() => setAssigningSubOrderId(null)}
+          onAssigned={() => {
+            setAssigningSubOrderId(null);
+          }}
+        />
+      )}
 
       <div className="flex flex-col items-end justify-between gap-3 rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:flex-row sm:items-center">
         <p className="text-sm text-gray-500 dark:text-gray-400">

@@ -19,6 +19,7 @@ import {
   SlidersHorizontal,
   X,
   Eye,
+  Truck,
 } from "lucide-react";
 import { api } from "@/src/lib/axios";
 import { Skeleton } from "@/src/components/ui/skeleton";
@@ -40,6 +41,16 @@ interface SubOrder {
   subtotal: number;
   status: string;
   items: OrderItem[];
+  deliveryManId?: string | null;
+  deliveryMan?: {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    mobileNumber?: string;
+    user?: {
+      name: string;
+    };
+  } | null;
 }
 
 interface Order {
@@ -440,6 +451,19 @@ export default function DashboardOrdersPage() {
                               ৳{Number(order.totalAmount).toLocaleString()}
                             </p>
                           </div>
+                          {order.subOrders.some((so) => so.deliveryMan) && (
+                            <span className="inline-flex items-center gap-1 text-xs font-medium text-cyan-600 dark:text-cyan-400">
+                              <Truck size={14} />
+                              Delivery Assigned
+                            </span>
+                          )}
+                          {(order.status === "COMPLETED" || order.status === "DELIVERED") && (
+                            <Link href={`/dashboard/returns?orderId=${order.id}`}>
+                              <Button size="sm" variant="outline" className="text-xs">
+                                Request Return
+                              </Button>
+                            </Link>
+                          )}
                           <motion.div
                             whileHover={{ scale: 1.1 }}
                             className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all"

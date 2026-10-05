@@ -40,4 +40,11 @@ export const sellerService = {
     const { data } = await api.patch(`/fulfillments/${subOrderId}/status`, { status });
     return data.data;
   },
+
+  assignDeliveryMan: async (subOrderId: string, deliveryManId: string) => {
+    const { data } = await api.patch(`/sellers/sub-orders/${subOrderId}/assign-delivery`, {
+      deliveryManId,
+    });
+    return data;
+  },
 };
