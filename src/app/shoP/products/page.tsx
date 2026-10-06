@@ -9,9 +9,10 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   Search, ShoppingCart, Star, Filter, Eye,
   ChevronLeft, ChevronRight, LayoutGrid, List,
-  X, SlidersHorizontal,
+  X, SlidersHorizontal, Camera,
 } from "lucide-react";
 import { useProducts, useCategories } from "../../../features/products/useProducts";
+import { visualSearchProducts } from "../../../services/Product.service";
 import type { Product } from "../../../services/Product.service";
 
 function MotionLines() {
@@ -74,6 +75,12 @@ export default function ProductsPage() {
   const [minPrice, setMinPrice] = useState<string>("");
   const [maxPrice, setMaxPrice] = useState<string>("");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [visualSearchOpen, setVisualSearchOpen] = useState(false);
+  const [visualSearchQuery, setVisualSearchQuery] = useState<File | null>(null);
+  const [visualSearchPreview, setVisualSearchPreview] = useState<string | null>(null);
+  const [visualSearchResults, setVisualSearchResults] = useState<(Product & { similarity: number })[]>([]);
+  const [isVisualSearching, setIsVisualSearching] = useState(false);
+  const [visualSearchError, setVisualSearchError] = useState<string | null>(null);
 
   const updateCategory = (catId: string | null) => {
     updateCategoryState(catId);
@@ -90,6 +97,43 @@ export default function ProductsPage() {
     router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
   };
 
+  const handleVisualSearch = async () => {
+    if (!visualSearchQuery) {
+      setVisualSearchError("Please select an image first");
+      return;
+    }
+
+    setIsVisualSearching(true);
+    setVisualSearchError(null);
+    setVisualSearchResults([]);
+
+    try {
+      const response = await visualSearchProducts(visualSearchQuery);
+      if (response.success) {
+        setVisualSearchResults(response.data.items);
+        if (response.data.items.length === 0) {
+          setVisualSearchError("Product is not found");
+        }
+      } else {
+        setVisualSearchError("Visual search failed. Please try again.");
+      }
+    } catch (err: any) {
+      setVisualSearchError(err?.message || "Visual search failed. Please try again.");
+    } finally {
+      setIsVisualSearching(false);
+    }
+  };
+
+  const handleVisualSearchFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setVisualSearchQuery(file);
+      setVisualSearchPreview(URL.createObjectURL(file));
+      setVisualSearchResults([]);
+      setVisualSearchError(null);
+    }
+  };
+
   const { data, isLoading, isError, error } = useProducts({ page, pageSize: 12 });
 
   const products: Product[] = useMemo(() => {
@@ -103,6 +147,8 @@ export default function ProductsPage() {
       return true;
     });
   }, [data, activeCat, search, minPrice, maxPrice]);
+
+  const visualSearchProductsList = visualSearchResults;
 
   const totalPages = data?.totalPages ?? (data?.total ? Math.max(1, Math.ceil(data.total / 12)) : 1);
 
@@ -137,19 +183,33 @@ export default function ProductsPage() {
               Discover handpicked products from top sellers. Quality guaranteed, delivered fast.
             </motion.p>
 
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              <div className="relative min-w-55 flex-1">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 opacity-60" />
-                <input value={search} onChange={e => setSearch(e.target.value)}
-                  placeholder="Search products…"
-                  className="w-full rounded-full border border-white/10 bg-white/10 py-2.5 pl-10 pr-4 text-sm text-white outline-none backdrop-blur placeholder:opacity-60 focus:border-white/30 focus:ring-2 focus:ring-white/20" />
+            <div className="mt-6 flex flex-col gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="relative min-w-55 flex-1">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 opacity-60" />
+                  <input value={search} onChange={e => setSearch(e.target.value)}
+                    placeholder="Search products…"
+                    className="w-full rounded-full border border-white/10 bg-white/10 py-2.5 pl-10 pr-4 text-sm text-white outline-none backdrop-blur placeholder:opacity-60 focus:border-white/30 focus:ring-2 focus:ring-white/20" />
+                </div>
+                <button
+                  onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
+                  className="lg:hidden grid h-10 w-10 place-items-center rounded-full border border-white/20 bg-white/10 backdrop-blur transition hover:bg-white/20"
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setVisualSearchOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-medium text-white shadow-sm backdrop-blur transition hover:bg-white/20"
+                  title="Search by image"
+                >
+                  <Camera className="h-4 w-4" />
+                  Upload Photo and Find similar Products
+                </button>
               </div>
-              <button
-                onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
-                className="lg:hidden grid h-10 w-10 place-items-center rounded-full border border-white/20 bg-white/10 backdrop-blur transition hover:bg-white/20"
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-              </button>
+
+              <div className="text-xs text-white/100 sm:text-sm">
+                Snap or upload a photo. AI finds matching products in seconds.
+              </div>
             </div>
           </div>
         </div>
@@ -433,6 +493,83 @@ export default function ProductsPage() {
           </section>
         </div>
       </main>
+
+      {/* Visual Search Modal */}
+      {visualSearchOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-2xl rounded-2xl border border-border bg-card p-6 shadow-xl">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-card-foreground">Visual Search</h2>
+              <button onClick={() => setVisualSearchOpen(false)} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-muted">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="mt-4">
+              <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border p-8">
+                {visualSearchPreview ? (
+                  <div className="relative">
+                    <Image src={visualSearchPreview} alt="Search query" width={400} height={300} className="rounded-lg object-cover" />
+                    <button onClick={() => { setVisualSearchQuery(null); setVisualSearchPreview(null); setVisualSearchResults([]); setVisualSearchError(null); }}
+                      className="absolute -top-2 -right-2 grid h-8 w-8 place-items-center rounded-full bg-destructive text-destructive-foreground">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <Camera className="mx-auto h-12 w-12 text-muted-foreground" />
+                    <p className="mt-2 text-sm text-muted-foreground">Search by image using AI. Upload a product photo and we’ll match it with the closest items in our catalog.</p>
+                    <label className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90">
+                      <Camera className="h-4 w-4" />
+                      <span>Upload Photo</span>
+                      <input type="file" accept="image/*" onChange={handleVisualSearchFileChange} className="hidden" />
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              {visualSearchQuery && visualSearchResults.length === 0 && !isVisualSearching && !visualSearchError && (
+                <button onClick={handleVisualSearch}
+                  className="mt-4 w-full rounded-full bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90">
+                  Search Similar Products
+                </button>
+              )}
+
+              {isVisualSearching && (
+                <div className="mt-4 text-center text-sm text-muted-foreground">Searching...</div>
+              )}
+
+              {visualSearchError && (
+                <p className="mt-4 text-center text-sm text-destructive">{visualSearchError}</p>
+              )}
+
+              {visualSearchResults.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="mb-3 text-lg font-semibold text-card-foreground">Results ({visualSearchResults.length})</h3>
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                    {visualSearchResults.map((product) => {
+                      const productImageSrc = product.imageUrl || product.imageUrls?.[0] || "/globe.svg";
+
+                      return (
+                        <Link key={product.id} href={`/shoP/products/${product.id}`} onClick={() => setVisualSearchOpen(false)}>
+                          <div className="overflow-hidden rounded-xl border border-border bg-card transition hover:shadow-md">
+                            <Image src={productImageSrc} alt={product.name || "Product image"} width={300} height={200} className="h-36 w-full object-cover" />
+                            <div className="p-3">
+                              <p className="truncate text-sm font-semibold text-card-foreground">{product.name}</p>
+                              <p className="text-xs text-muted-foreground">Match: {(product.similarity * 100).toFixed(1)}%</p>
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

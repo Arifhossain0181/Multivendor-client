@@ -44,6 +44,14 @@ export type ProductListResponse = {
     total?: number;
 };
 
+export type VisualSearchResponse = {
+    success: boolean;
+    data: {
+        items: (Product & { similarity: number })[];
+        total: number;
+    };
+};
+
 export type ProductDetailsResponse = Product;
 
 export type CreateProductPayload = FormData | Record<string, unknown>;
@@ -80,5 +88,16 @@ export async function deleteProduct(id: ProductId) {
 
 export async function trackProductView(productId: ProductId) {
     const {data} = await api.post(`/products/${productId}/view`);
+    return data;
+}
+
+export async function visualSearchProducts(imageFile: File): Promise<VisualSearchResponse> {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    const {data} = await api.post('/products/visual-search', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
     return data;
 }
