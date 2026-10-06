@@ -13,15 +13,14 @@ const tabs: { label: string; value: UserRole | undefined }[] = [
 
 export default function AdminUsersPage() {
   const [activeTab, setActiveTab] = useState<UserRole | undefined>(undefined);
-  const [page, setPage] = useState(1);
+  const [cursor, setCursor] = useState<string | undefined>(undefined);
   const { data, isLoading, isError, error } = useAdminUsers(
     activeTab === "CUSTOMER" ? undefined : activeTab,
-    page,
+    cursor,
+    10,
     activeTab === "CUSTOMER"
   );
-  const pageSize = data?.limit ?? 10;
-  const totalPages = data ? Math.max(1, Math.ceil(data.total / pageSize)) : 1;
-  const activeLabel = tabs.find(t => t.value === activeTab)?.label ?? "All";
+   const activeLabel = tabs.find(t => t.value === activeTab)?.label ?? "All";
 
   return (
     <div>
@@ -39,10 +38,10 @@ export default function AdminUsersPage() {
         {tabs.map((tab) => (
           <button
             key={tab.label}
-            onClick={() => {
-              setActiveTab(tab.value);
-              setPage(1);
-            }}
+          onClick={() => {
+            setActiveTab(tab.value);
+            setCursor(undefined);
+          }}
             className={`px-4 py-2 text-sm font-medium ${
               activeTab === tab.value
                 ? "border-b-2 border-[#0A1F44] text-[#0A1F44] dark:border-cyan-400 dark:text-cyan-400"
@@ -87,23 +86,20 @@ export default function AdminUsersPage() {
 
       <div className="mt-4 flex justify-end gap-2">
         <button
-          onClick={() => setPage((p) => Math.max(1, p - 1))}
-          disabled={page === 1}
+          onClick={() => setCursor(undefined)}
+          disabled={!cursor}
           className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-gray-700 dark:text-gray-300"
         >
-          Prev
+          First
         </button>
         <button
-          onClick={() => setPage((p) => p + 1)}
-          disabled={page >= totalPages}
+          onClick={() => data?.nextCursor && setCursor(data.nextCursor)}
+          disabled={!data?.hasMore}
           className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-gray-700 dark:text-gray-300"
         >
           Next
         </button>
       </div>
-      <p className="mt-2 text-right text-xs text-gray-500 dark:text-gray-400">
-        Page {page} of {totalPages}
-      </p>
     </div>
   );
 }

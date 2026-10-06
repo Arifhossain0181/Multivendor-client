@@ -93,7 +93,7 @@ export default function ProductsPage() {
   const { data, isLoading, isError, error } = useProducts({ page, pageSize: 12 });
 
   const products: Product[] = useMemo(() => {
-    const list = data?.data ?? [];
+    const list = data?.items ?? [];
     return list.filter(p => {
       if (activeCat && p.categoryId !== activeCat) return false;
       const s = search.toLowerCase();

@@ -15,14 +15,18 @@ export type ReviewItem = {
 };
 
 export type ProductReviewsResponse = {
-  reviews: ReviewItem[];
-  total: number;
+  items: ReviewItem[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  total?: number;
   averageRating: number;
 };
 
 export type SellerReviewsResponse = {
-  reviews: ReviewItem[];
-  total: number;
+  items: ReviewItem[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  total?: number;
   averageRating: number;
   averageSellerRating: number;
 };
@@ -39,18 +43,18 @@ export async function createReview(payload: CreateReviewPayload) {
   return data;
 }
 
-export async function getProductReviews(productId: string): Promise<ProductReviewsResponse> {
-  const { data } = await api.get(`/reviews/product/${productId}`);
+export async function getProductReviews(productId: string, cursor?: string, limit = 10): Promise<ProductReviewsResponse> {
+  const { data } = await api.get(`/reviews/product/${productId}?cursor=${encodeURIComponent(cursor || "")}&limit=${limit}`);
   return data.data;
 }
 
-export async function getSellerReviews(sellerId: string): Promise<SellerReviewsResponse> {
-  const { data } = await api.get(`/reviews/seller/${sellerId}`);
+export async function getSellerReviews(sellerId: string, cursor?: string, limit = 10): Promise<SellerReviewsResponse> {
+  const { data } = await api.get(`/reviews/seller/${sellerId}?cursor=${encodeURIComponent(cursor || "")}&limit=${limit}`);
   return data.data;
 }
 
-export async function getMyReviews() {
-  const { data } = await api.get("/reviews/my");
+export async function getMyReviews(cursor?: string, limit = 10) {
+  const { data } = await api.get(`/reviews/my?cursor=${encodeURIComponent(cursor || "")}&limit=${limit}`);
   return data.data;
 }
 

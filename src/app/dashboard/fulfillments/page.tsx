@@ -233,20 +233,20 @@ function AssignDeliveryModal({
 }
 
 export default function SellerFulfillmentsPage() {
-  const [page, setPage] = useState(1);
+  const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [assigningSubOrderId, setAssigningSubOrderId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["seller", "fulfillments", page],
-    queryFn: () => sellerService.getFulfillments(page, 10),
+    queryKey: ["seller", "fulfillments", cursor ?? "null"],
+    queryFn: () => sellerService.getFulfillments(cursor, 10),
   });
 
   const updateStatus = useUpdateSubOrderStatus();
 
-  const subOrders = (data?.subOrders ?? []) as SubOrder[];
+  const subOrders = (data?.data ?? []) as SubOrder[];
   const meta = data?.meta;
 
   const filteredSubOrders = useMemo(() => {
@@ -556,7 +556,7 @@ export default function SellerFulfillmentsPage() {
       )}
 
       {/* Pagination */}
-      {meta && meta.totalPages > 1 && !isLoading && (
+      {meta && meta.hasMore && !isLoading && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -564,19 +564,16 @@ export default function SellerFulfillmentsPage() {
         >
           <Button
             variant="outline"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
+            onClick={() => setCursor(undefined)}
+            disabled={!cursor}
             className="rounded-xl"
           >
-            Previous
+            First
           </Button>
-          <span className="text-sm font-medium text-muted-foreground px-4">
-            Page {meta.page} of {meta.totalPages}
-          </span>
           <Button
             variant="outline"
-            onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
-            disabled={page >= meta.totalPages}
+            onClick={() => meta.nextCursor && setCursor(meta.nextCursor)}
+            disabled={!meta.hasMore}
             className="rounded-xl"
           >
             Next

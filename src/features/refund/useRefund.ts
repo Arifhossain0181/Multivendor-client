@@ -18,8 +18,8 @@ export const refundKeys = {
   my: ["refunds", "my"],
   seller: ["refunds", "seller"],
   admin: {
-    returns: (page = 1) => ["refunds", "admin", "returns", page],
-    disputes: (page = 1) => ["refunds", "admin", "disputes", page],
+    returns: (cursor?: string, limit = 10) => ["refunds", "admin", "returns", cursor ?? "null", limit],
+    disputes: (cursor?: string, limit = 10) => ["refunds", "admin", "disputes", cursor ?? "null", limit],
   },
 };
 
@@ -111,16 +111,16 @@ export function useResolveDispute() {
   });
 }
 
-export function useAdminReturns(page = 1) {
+export function useAdminReturns(cursor?: string, limit = 10) {
   return useQuery({
-    queryKey: refundKeys.admin.returns(page),
-    queryFn: () => getAllReturns(page, 10),
+    queryKey: refundKeys.admin.returns(cursor, limit),
+    queryFn: () => getAllReturns(cursor, limit),
   });
 }
 
-export function useAdminDisputes(page = 1) {
+export function useAdminDisputes(cursor?: string, limit = 10) {
   return useQuery({
-    queryKey: refundKeys.admin.disputes(page),
-    queryFn: () => getAllDisputes(page, 10),
+    queryKey: refundKeys.admin.disputes(cursor, limit),
+    queryFn: () => getAllDisputes(cursor, limit),
   });
 }

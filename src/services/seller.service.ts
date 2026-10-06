@@ -20,19 +20,19 @@ export interface SubOrder {
 
 export interface FulfillmentMeta {
   total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  nextCursor: string | null;
+  hasMore: boolean;
 }
 
 export interface FulfillmentsResponse {
-  subOrders: SubOrder[];
+  success: boolean;
+  data: SubOrder[];
   meta: FulfillmentMeta;
 }
 
 export const sellerService = {
-  getFulfillments: async (page = 1, limit = 10): Promise<FulfillmentsResponse> => {
-    const { data } = await api.get(`/fulfillments?page=${page}&limit=${limit}`);
+  getFulfillments: async (cursor?: string, limit = 10): Promise<FulfillmentsResponse> => {
+    const { data } = await api.get(`/fulfillments?cursor=${encodeURIComponent(cursor || "")}&limit=${limit}`);
     return data;
   },
 

@@ -95,12 +95,12 @@ export async function resolveDispute(disputeId: string, resolution: string) {
   return data;
 }
 
-export async function getAllReturns(page = 1, limit = 10) {
-  const { data } = await api.get(`/refunds/admin/returns?page=${page}&limit=${limit}`);
+export async function getAllReturns(cursor?: string, limit = 10) {
+  const { data } = await api.get(`/refunds/admin/returns?cursor=${encodeURIComponent(cursor || "")}&limit=${limit}`);
   return data.data;
 }
 
-export async function getAllDisputes(page = 1, limit = 10) {
-  const { data } = await api.get(`/refunds/admin/disputes?page=${page}&limit=${limit}`);
+export async function getAllDisputes(cursor?: string, limit = 10) {
+  const { data } = await api.get(`/refunds/admin/disputes?cursor=${encodeURIComponent(cursor || "")}&limit=${limit}`);
   return data.data;
 }

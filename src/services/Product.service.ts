@@ -1,8 +1,9 @@
 import { api } from "../lib/axios";
 
 export type ProductListParams = {
-    page?: number;
-    pageSize?: number;
+    cursor?: string;
+    limit?: number;
+    categoryId?: string;
     [key: string]: string | number | boolean | undefined;
 };
 
@@ -37,11 +38,10 @@ export type Product = {
 };
 
 export type ProductListResponse = {
-    data: Product[];
+    items: Product[];
+    nextCursor: string | null;
+    hasMore: boolean;
     total?: number;
-    page?: number;
-    pageSize?: number;
-    totalPages?: number;
 };
 
 export type ProductDetailsResponse = Product;

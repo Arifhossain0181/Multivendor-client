@@ -10,6 +10,13 @@ import {
 } from "../app/dashboard/admin/comPonents/types.admin";
 import { api } from "../lib/axios";
 
+type PaginatedResponse<T> = {
+  items: T[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  total?: number;
+};
+
 export const adminService = {
   getStats: async (): Promise<AdminStats> => {
     const { data } = await api.get("/admin/stats");
@@ -18,10 +25,11 @@ export const adminService = {
 
   getUsers: async (
     role?: UserRole,
-    page = 1,
+    cursor?: string,
+    limit = 10,
     hasPaidOrders?: boolean
-  ): Promise<{ items: AdminUser[]; total: number; page: number; limit: number }> => {
-    const { data } = await api.get("/admin/users", { params: { role, page, hasPaidOrders } });
+  ): Promise<PaginatedResponse<AdminUser>> => {
+    const { data } = await api.get("/admin/users", { params: { role, cursor, limit, hasPaidOrders } });
     return data;
   },
 
@@ -47,9 +55,10 @@ export const adminService = {
 
   getProducts: async (
     status?: string,
-    page = 1
-  ): Promise<{ items: AdminProduct[]; total: number; page: number; limit: number }> => {
-    const { data } = await api.get("/admin/products", { params: { status, page } });
+    cursor?: string,
+    limit = 10
+  ): Promise<PaginatedResponse<AdminProduct>> => {
+    const { data } = await api.get("/admin/products", { params: { status, cursor, limit } });
     return data;
   },
 
@@ -64,24 +73,27 @@ export const adminService = {
   },
 
   getOrders: async (
-    page = 1
-  ): Promise<{ items: AdminOrder[]; total: number; page: number; limit: number }> => {
-    const { data } = await api.get("/admin/orders", { params: { page } });
+    cursor?: string,
+    limit = 10
+  ): Promise<PaginatedResponse<AdminOrder>> => {
+    const { data } = await api.get("/admin/orders", { params: { cursor, limit } });
     return data;
   },
 
   getFulfillments: async (
-    page = 1
-  ): Promise<{ items: any[]; total: number; page: number; limit: number }> => {
-    const { data } = await api.get("/admin/fulfillments", { params: { page } });
+    cursor?: string,
+    limit = 10
+  ): Promise<PaginatedResponse<any>> => {
+    const { data } = await api.get("/admin/fulfillments", { params: { cursor, limit } });
     return data;
   },
 
   getDeliveryMen: async (
     status?: string,
-    page = 1
-  ): Promise<{ items: AdminDeliveryMan[]; total: number; page: number; limit: number }> => {
-    const { data } = await api.get("/delivery", { params: { status, page } });
+    cursor?: string,
+    limit = 10
+  ): Promise<PaginatedResponse<AdminDeliveryMan>> => {
+    const { data } = await api.get("/delivery", { params: { status, cursor, limit } });
     return data;
   },
 

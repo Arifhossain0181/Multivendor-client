@@ -15,10 +15,10 @@ export const reviewKeys = {
   seller: (sellerId: string) => ["reviews", "seller", sellerId],
 };
 
-export function useProductReviews(productId: string) {
+export function useProductReviews(productId: string, cursor?: string, limit = 10) {
   return useQuery({
-    queryKey: reviewKeys.product(productId),
-    queryFn: () => getProductReviews(productId),
+    queryKey: [...reviewKeys.product(productId), cursor ?? "null", limit],
+    queryFn: () => getProductReviews(productId, cursor, limit),
     enabled: !!productId,
   });
 }
@@ -38,10 +38,10 @@ export function useCreateReview() {
   });
 }
 
-export function useMyReviews() {
+export function useMyReviews(cursor?: string, limit = 10) {
   return useQuery({
-    queryKey: reviewKeys.my,
-    queryFn: getMyReviews,
+    queryKey: [...reviewKeys.my, cursor ?? "null", limit],
+    queryFn: () => getMyReviews(cursor, limit),
     enabled: false,
   });
 }

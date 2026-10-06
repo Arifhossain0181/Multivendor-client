@@ -34,12 +34,12 @@ function StatusChip({ status }: { status: AdminProduct["status"] }) {
 }
 
 export default function AdminProductsPage() {
-  const router = useRouter(); //  NEW
+  const router = useRouter();
   const [status, setStatus] = useState<string | undefined>(undefined);
-  const [page, setPage] = useState(1);
-  const { data, isLoading } = useAdminProducts(status, page);
+  const [cursor, setCursor] = useState<string | undefined>(undefined);
+  const { data, isLoading } = useAdminProducts(status, cursor, 10);
   const updateStatus = useUpdateProductStatus();
-  const deleteProduct = useDeleteProduct(); //  NEW
+  const deleteProduct = useDeleteProduct();
 
   //  NEW — delete confirmation modal-er jonno state
   const [deleteTarget, setDeleteTarget] = useState<AdminProduct | null>(null);
@@ -96,7 +96,7 @@ export default function AdminProductsPage() {
             key={String(filter.label)}
             onClick={() => {
               setStatus(filter.value);
-              setPage(1);
+              setCursor(undefined);
             }}
             className={`px-4 py-2 text-sm font-medium ${
               status === filter.value
@@ -216,15 +216,15 @@ export default function AdminProductsPage() {
 
       <div className="mt-4 flex justify-end gap-2">
         <button
-          onClick={() => setPage((current) => Math.max(1, current - 1))}
-          disabled={page === 1}
+          onClick={() => setCursor(undefined)}
+          disabled={!cursor}
           className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-gray-700 dark:text-gray-300"
         >
-          Prev
+          First
         </button>
         <button
-          onClick={() => setPage((current) => current + 1)}
-          disabled={page >= Math.max(1, Math.ceil((data?.total ?? 0) / (data?.limit ?? 10)))}
+          onClick={() => data?.nextCursor && setCursor(data.nextCursor)}
+          disabled={!data?.hasMore}
           className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-gray-700 dark:text-gray-300"
         >
           Next

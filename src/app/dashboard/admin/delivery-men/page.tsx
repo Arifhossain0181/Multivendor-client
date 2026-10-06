@@ -259,9 +259,9 @@ function DeleteModal({ item, onClose, onConfirm }: { item: AdminDeliveryMan; onC
 }
 
 export default function AdminDeliveryMenPage() {
-  const [page, setPage] = useState(1);
+  const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
-  const { data, isLoading } = useAdminDeliveryMen(statusFilter, page);
+  const { data, isLoading } = useAdminDeliveryMen(statusFilter, cursor, 10);
   const updateStatus = useUpdateDeliveryManStatus();
   const deleteDeliveryMan = useDeleteDeliveryMan();
 
@@ -330,7 +330,7 @@ export default function AdminDeliveryMenPage() {
             key={filter.label}
             onClick={() => {
               setStatusFilter(filter.value);
-              setPage(1);
+              setCursor(undefined);
             }}
             className={`px-4 py-2 text-sm font-medium ${
               statusFilter === filter.value
@@ -428,15 +428,15 @@ export default function AdminDeliveryMenPage() {
 
       <div className="mt-4 flex justify-end gap-2">
         <button
-          onClick={() => setPage((current) => Math.max(1, current - 1))}
-          disabled={page === 1}
+          onClick={() => setCursor(undefined)}
+          disabled={!cursor}
           className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-gray-700 dark:text-gray-300"
         >
-          Prev
+          First
         </button>
         <button
-          onClick={() => setPage((current) => current + 1)}
-          disabled={page >= Math.max(1, Math.ceil((total ?? 0) / (limit ?? 10)))}
+          onClick={() => (data as any)?.nextCursor && setCursor((data as any).nextCursor)}
+          disabled={!(data as any)?.hasMore}
           className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-gray-700 dark:text-gray-300"
         >
           Next

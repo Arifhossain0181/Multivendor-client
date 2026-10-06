@@ -2,10 +2,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { sellerService } from "../../services/seller.service";
 
-export function useFulfillments(page = 1, limit = 10) {
+export function useFulfillments(cursor?: string, limit = 10) {
   return useQuery({
-    queryKey: ["seller", "fulfillments", page],
-    queryFn: () => sellerService.getFulfillments(page, limit),
+    queryKey: ["seller", "fulfillments", cursor ?? "null", limit],
+    queryFn: () => sellerService.getFulfillments(cursor, limit),
     staleTime: 1000 * 30,
   });
 }

@@ -127,12 +127,10 @@ function AssignDeliveryModal({
 }
 
 export default function AdminOrdersPage() {
-  const [page, setPage] = useState(1);
-  const { data, isLoading } = useAdminOrders(page);
+  const [cursor, setCursor] = useState<string | undefined>(undefined);
+  const { data, isLoading } = useAdminOrders(cursor, 10);
   const [assigningSubOrderId, setAssigningSubOrderId] = useState<string | null>(null);
   const orders = data?.items ?? [];
-  const pageSize = data?.limit ?? 10;
-  const totalPages = data ? Math.max(1, Math.ceil(data.total / pageSize)) : 1;
   const currentPageTotal = orders.reduce((sum, order) => sum + order.totalAmount, 0);
   const completedCount = orders.filter((order) => order.status === "COMPLETED").length;
   const paidCount = orders.filter((order) => order.status === "PAID").length;
@@ -401,26 +399,25 @@ export default function AdminOrdersPage() {
 
       <div className="flex flex-col items-end justify-between gap-3 rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:flex-row sm:items-center">
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Page <span className="font-medium text-gray-900 dark:text-gray-50">{page}</span> of{" "}
-          <span className="font-medium text-gray-900 dark:text-gray-50">{totalPages}</span>
+          {orders.length} orders on this page
         </p>
 
         <div className="flex gap-2">
         <button
-          onClick={() => setPage((current) => Math.max(1, current - 1))}
-          disabled={page === 1}
+          onClick={() => setCursor(undefined)}
+          disabled={!cursor}
           className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
         >
-          Prev
+          First
         </button>
         <button
-          onClick={() => setPage((current) => current + 1)}
-          disabled={page >= totalPages}
+          onClick={() => data?.nextCursor && setCursor(data.nextCursor)}
+          disabled={!data?.hasMore}
           className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
         >
           Next
         </button>
-        </div>
+      </div>
       </div>
     </div>
   );

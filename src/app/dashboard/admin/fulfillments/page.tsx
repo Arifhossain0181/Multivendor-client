@@ -98,16 +98,14 @@ function FulfillmentCardSkeleton() {
 }
 
 export default function AdminFulfillmentsPage() {
-  const [page, setPage] = useState(1);
+  const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const { data, isLoading, isError, error } = useAdminFulfillments(page);
+  const { data, isLoading, isError, error } = useAdminFulfillments(cursor, 10);
 
   const fulfillments = data?.items ?? [];
   const total = data?.total ?? 0;
-  const pageSize = data?.limit ?? 10;
-  const totalPages = data ? Math.max(1, Math.ceil(total / pageSize)) : 1;
 
   const filteredFulfillments = useFilteredFulfillments(fulfillments, searchQuery);
 
@@ -367,7 +365,7 @@ export default function AdminFulfillmentsPage() {
       )}
 
       {/* Pagination */}
-      {totalPages > 1 && !isLoading && (
+      {!isLoading && data?.hasMore && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -375,19 +373,16 @@ export default function AdminFulfillmentsPage() {
         >
           <Button
             variant="outline"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
+            onClick={() => setCursor(undefined)}
+            disabled={!cursor}
             className="rounded-xl"
           >
-            Previous
+            First
           </Button>
-          <span className="text-sm font-medium text-muted-foreground px-4">
-            Page {page} of {totalPages}
-          </span>
           <Button
             variant="outline"
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
+            onClick={() => data?.nextCursor && setCursor(data.nextCursor)}
+            disabled={!data?.hasMore}
             className="rounded-xl"
           >
             Next

@@ -106,15 +106,15 @@ function ResolveDisputeModal({
 }
 
 export default function AdminReturnsPage() {
-  const [page, setPage] = useState(1);
+  const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [refundId, setRefundId] = useState<string | null>(null);
   const [disputeId, setDisputeId] = useState<string | null>(null);
 
-  const { data: returnsData, isLoading: returnsLoading } = useAdminReturns(page);
-  const { data: disputesData, isLoading: disputesLoading } = useAdminDisputes(page);
+  const { data: returnsData, isLoading: returnsLoading } = useAdminReturns(cursor, 10);
+  const { data: disputesData, isLoading: disputesLoading } = useAdminDisputes(cursor, 10);
 
-  const returns = returnsData?.returns ?? [];
-  const disputes = disputesData?.disputes ?? [];
+  const returns = returnsData?.items ?? [];
+  const disputes = disputesData?.items ?? [];
 
   if (returnsLoading && disputesLoading) {
     return (

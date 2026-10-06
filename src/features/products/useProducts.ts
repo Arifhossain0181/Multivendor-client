@@ -101,7 +101,9 @@ export function useFetchProducts(params?: ProductListParams) {
   const { data, ...query } = useProducts(params);
 
   return {
-    data: data?.data ?? [],
+    data: data?.items ?? [],
+    nextCursor: data?.nextCursor ?? null,
+    hasMore: data?.hasMore ?? false,
     ...query,
   };
 }
@@ -136,12 +138,14 @@ export function useMyProducts(params?: ProductListParams, options?: { enabled?: 
 }
 
 export function useFetchMyProducts(params?: ProductListParams) {
-	const { data, ...query } = useMyProducts(params);
+  const { data, ...query } = useMyProducts(params);
 
-	return {
-		data: data?.data ?? [],
-		...query,
-	};
+  return {
+    data: data?.items ?? [],
+    nextCursor: data?.nextCursor ?? null,
+    hasMore: data?.hasMore ?? false,
+    ...query,
+  };
 }
 
 export function useTrackProductView() {

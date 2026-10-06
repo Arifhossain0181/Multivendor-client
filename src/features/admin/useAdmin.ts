@@ -15,10 +15,10 @@ export function useAdminStats() {
   });
 }
 
-export function useAdminUsers(role?: UserRole, page = 1, hasPaidOrders?: boolean) {
+export function useAdminUsers(role?: UserRole, cursor?: string, limit = 10, hasPaidOrders?: boolean) {
   return useQuery({
-    queryKey: ["admin", "users", role ?? "ALL", page, hasPaidOrders],
-    queryFn: () => adminService.getUsers(role, page, hasPaidOrders),
+    queryKey: ["admin", "users", role ?? "ALL", cursor ?? "null", limit, hasPaidOrders],
+    queryFn: () => adminService.getUsers(role, cursor, limit, hasPaidOrders),
   });
 }
 
@@ -48,10 +48,10 @@ export function useToggleUserActive() {
   });
 }
 
-export function useAdminProducts(status?: string, page = 1) {
+export function useAdminProducts(status?: string, cursor?: string, limit = 10) {
   return useQuery({
-    queryKey: ["admin", "products", status ?? "ALL", page],
-    queryFn: () => adminService.getProducts(status, page),
+    queryKey: ["admin", "products", status ?? "ALL", cursor ?? "null", limit],
+    queryFn: () => adminService.getProducts(status, cursor, limit),
   });
 }
 
@@ -68,17 +68,17 @@ export function useUpdateProductStatus() {
   });
 }
 
-export function useAdminOrders(page = 1) {
+export function useAdminOrders(cursor?: string, limit = 10) {
   return useQuery({
-    queryKey: ["admin", "orders", page],
-    queryFn: () => adminService.getOrders(page),
+    queryKey: ["admin", "orders", cursor ?? "null", limit],
+    queryFn: () => adminService.getOrders(cursor, limit),
   });
 }
 
-export function useAdminFulfillments(page = 1) {
+export function useAdminFulfillments(cursor?: string, limit = 10) {
   return useQuery({
-    queryKey: ["admin", "fulfillments", page],
-    queryFn: () => adminService.getFulfillments(page),
+    queryKey: ["admin", "fulfillments", cursor ?? "null", limit],
+    queryFn: () => adminService.getFulfillments(cursor, limit),
   });
 }
 
@@ -98,10 +98,10 @@ export function useAssignDeliveryMan() {
   });
 }
 
-export function useAdminDeliveryMen(status?: string, page = 1) {
+export function useAdminDeliveryMen(status?: string, cursor?: string, limit = 10) {
   return useQuery({
-    queryKey: ["admin", "delivery-men", status ?? "ALL", page],
-    queryFn: () => adminService.getDeliveryMen(status, page),
+    queryKey: ["admin", "delivery-men", status ?? "ALL", cursor ?? "null", limit],
+    queryFn: () => adminService.getDeliveryMen(status, cursor, limit),
   });
 }
 
