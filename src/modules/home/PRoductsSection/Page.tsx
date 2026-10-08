@@ -69,9 +69,13 @@ export default function AnimatedProducts() {
     },
   });
 
-  const products: Product[] = productsData?.data ?? [];
+  const products: Product[] = Array.isArray(productsData)
+    ? productsData
+    : // support API shapes: { data: [...] } or { items: [...] } or single object
+      (productsData?.data ?? productsData?.items ?? []);
+
   const categoriesMap = new Map((categoriesData ?? []).map(c => [c.id, c.name]));
-  const displayedProducts = products.slice(0, 6);
+  const displayedProducts = (products ?? []).slice(0, 6);
 
   if (productsLoading) {
     return (

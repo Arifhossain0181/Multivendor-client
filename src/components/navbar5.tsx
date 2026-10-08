@@ -111,7 +111,7 @@ const Navbar5 = ({ className }: Navbar5Props) => {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md shadow-primary/20 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-primary/30 group-hover:scale-105">
               <Store className="h-5 w-5" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-foreground">
+            <span className="text-2xl font-bold tracking-tight text-foreground">
               Bazaari
             </span>
           </Link>
@@ -124,7 +124,7 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                   href="/shoP/products"
                   className={cn(
                     navigationMenuTriggerStyle(),
-                    "text-sm font-medium transition-colors hover:text-primary hover:bg-primary/5"
+                    "text-base font-medium transition-colors hover:text-primary hover:bg-primary/5"
                   )}
                 >
                   Products
@@ -135,14 +135,14 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                   href="/#categories"
                   className={cn(
                     navigationMenuTriggerStyle(),
-                    "text-sm font-medium transition-colors hover:text-primary hover:bg-primary/5"
+                    "text-base font-medium transition-colors hover:text-primary hover:bg-primary/5"
                   )}
                 >
                   Categories
                 </NavigationMenuLink>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <NavigationMenuTrigger className="text-sm font-medium transition-colors hover:text-primary hover:bg-primary/5">
+                <NavigationMenuTrigger className="text-base font-medium transition-colors hover:text-primary hover:bg-primary/5">
                   About
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
@@ -180,7 +180,7 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                   href="/seller/apply"
                   className={cn(
                     navigationMenuTriggerStyle(),
-                    "text-sm font-medium transition-colors hover:text-primary hover:bg-primary/5"
+                    "text-base font-medium transition-colors hover:text-primary hover:bg-primary/5"
                   )}
                 >
                   Seller Application
@@ -200,9 +200,9 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                             ? "/delivery"
                             : "/orders"
                     }
-                    className={cn(
+                      className={cn(
                       navigationMenuTriggerStyle(),
-                      "font-medium text-primary transition-colors hover:bg-primary/5"
+                      "text-base font-medium text-primary transition-colors hover:bg-primary/5"
                     )}
                   >
                     {user.role === "ADMIN" && "Admin Panel"}
