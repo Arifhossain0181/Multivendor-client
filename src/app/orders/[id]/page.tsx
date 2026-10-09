@@ -3,17 +3,21 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useState, useMemo } from "react";
 import { motion } from "motion/react";
-import { 
-  ArrowLeft, Calendar, MapPin, CreditCard, 
-  ShoppingBag, CheckCircle2, Clock, Truck, 
+import {
+  ArrowLeft, Calendar, MapPin, CreditCard,
+  ShoppingBag, CheckCircle2, Clock, Truck,
   Package, AlertTriangle, ShieldAlert,
-  ChevronRight
+  ChevronRight, RotateCcw, Undo2
 } from "lucide-react";
 
 import { api } from "@/src/lib/axios";
 import { Button } from "@/src/components/ui/button";
+import { Textarea } from "@/src/components/ui/textarea";
 import { useMe } from "@/src/features/auth/loginsstanstack/useMe";
+import { useMyReturns, useCreateReturn } from "@/src/features/refund/useRefund";
+import type { ReturnRequest } from "@/src/services/refund.service";
 
 interface OrderItem {
   id: string;
@@ -56,6 +60,7 @@ const STATUS_STYLE: Record<string, string> = {
   PAYMENT_FAILED_STOCK: "bg-red-500/10 text-red-600 border-red-200 dark:bg-red-500/20 dark:text-red-400 dark:border-red-800",
   CONFIRMED: "bg-sky-500/10 text-sky-600 border-sky-200 dark:bg-sky-500/20 dark:text-sky-400 dark:border-sky-800",
   SHIPPED: "bg-indigo-500/10 text-indigo-600 border-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-400 dark:border-indigo-800",
+  SHIFTED_TO_CUSTOMER: "bg-cyan-500/10 text-cyan-700 border-cyan-200 dark:bg-cyan-500/20 dark:text-cyan-300 dark:border-cyan-800",
   DELIVERED: "bg-emerald-500/10 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-800",
   COMPLETED: "bg-emerald-500/10 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-800",
   CANCELLED: "bg-gray-500/10 text-gray-500 border-gray-200 dark:bg-gray-500/20 dark:text-gray-400 dark:border-gray-700",
@@ -67,9 +72,26 @@ const STATUS_LABEL: Record<string, string> = {
   PAYMENT_FAILED_STOCK: "Payment Failed",
   CONFIRMED: "Confirmed",
   SHIPPED: "Shipped",
+  SHIFTED_TO_CUSTOMER: "Shifted to Customer",
   DELIVERED: "Delivered",
   COMPLETED: "Completed",
   CANCELLED: "Cancelled",
+};
+
+const RETURN_STATUS_STYLE: Record<string, string> = {
+  PENDING: "bg-amber-500/10 text-amber-600 border-amber-200 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-800",
+  APPROVED: "bg-sky-500/10 text-sky-600 border-sky-200 dark:bg-sky-500/20 dark:text-sky-400 dark:border-sky-800",
+  REJECTED: "bg-red-500/10 text-red-600 border-red-200 dark:bg-red-500/20 dark:text-red-400 dark:border-red-800",
+  REFUNDED: "bg-emerald-500/10 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-800",
+  DISPUTED: "bg-indigo-500/10 text-indigo-600 border-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-400 dark:border-indigo-800",
+};
+
+const RETURN_STATUS_LABEL: Record<string, string> = {
+  PENDING: "Return Pending",
+  APPROVED: "Return Approved",
+  REJECTED: "Return Rejected",
+  REFUNDED: "Refunded",
+  DISPUTED: "Return Disputed",
 };
 
 function getSubOrderStatusLabel(subOrder: SubOrder): string {
@@ -102,6 +124,8 @@ const getStatusIcon = (status: string) => {
       return <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />;
     case "SHIPPED":
       return <Truck className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />;
+    case "SHIFTED_TO_CUSTOMER":
+      return <Truck className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />;
     case "CONFIRMED":
       return <Package className="h-5 w-5 text-sky-600 dark:text-sky-400" />;
     case "CANCELLED":
@@ -117,6 +141,129 @@ const fetchOrderDetails = async (id: string): Promise<Order> => {
   return data.data;
 };
 
+function ReturnRequestModal({
+  subOrder,
+  onClose,
+}: {
+  subOrder: SubOrder;
+  onClose: () => void;
+}) {
+  const [reason, setReason] = useState("");
+  const [requestedQty, setRequestedQty] = useState(1);
+  const createMutation = useCreateReturn();
+
+  const totalQty = subOrder.items.reduce((sum, item) => sum + item.quantity, 0);
+  let remainingEstimateQty = requestedQty;
+  const estimatedRefund = subOrder.items.reduce((sum, item) => {
+    const itemQty = Math.min(remainingEstimateQty, item.quantity);
+    remainingEstimateQty -= itemQty;
+    return sum + Number(item.unitPrice) * itemQty;
+  }, 0);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (reason.trim().length < 5) return;
+    createMutation.mutate(
+      { subOrderId: subOrder.id, reason: reason.trim(), requestedQty },
+      { onSuccess: () => onClose() }
+    );
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl"
+      >
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
+              <Undo2 className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-foreground">Request Return</h2>
+              <p className="text-xs text-muted-foreground">
+                Package {subOrder.id.slice(0, 8)}... — {totalQty} item{totalQty !== 1 ? "s" : ""}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground"
+          >
+            <AlertTriangle className="h-4 w-4" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Reason for return
+            </label>
+            <Textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="e.g. Damaged item, wrong size, not as described..."
+              rows={3}
+              required
+              minLength={5}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              {reason.trim().length < 5
+                ? "Please provide at least 5 characters"
+                : "The seller will review your request."}
+            </p>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Quantity to return
+            </label>
+            <input
+              type="number"
+              min={1}
+              max={totalQty}
+              value={requestedQty}
+              onChange={(e) => {
+                const value = Math.max(1, Math.min(totalQty, Number(e.target.value) || 1));
+                setRequestedQty(value);
+              }}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Estimated refund: ৳{estimatedRefund.toLocaleString()} based on the items in this package.
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+            <p className="flex items-start gap-2">
+              <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <span>
+                The seller reviews your request. After approval, an admin processes the refund to
+                your original payment method. If your request is rejected you can raise a dispute from{" "}
+                <Link href="/dashboard/returns" className="font-semibold text-primary underline underline-offset-2">
+                  My Returns
+                </Link>
+                .
+              </span>
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-1">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={createMutation.isPending || reason.trim().length < 5}>
+              {createMutation.isPending ? "Submitting..." : "Submit Return Request"}
+            </Button>
+          </div>
+        </form>
+      </motion.div>
+    </div>
+  );
+}
+
 export default function OrderDetailsPage() {
   const params = useParams();
   const router = useRouter();
@@ -127,7 +274,22 @@ export default function OrderDetailsPage() {
     queryKey: ["order", id],
     queryFn: () => fetchOrderDetails(id),
     enabled: !!id,
+    refetchInterval: 5000,
   });
+
+  const { data: myReturnsData } = useMyReturns();
+  const [returnModalSubOrder, setReturnModalSubOrder] = useState<SubOrder | null>(null);
+
+  const returnsBySubOrder: Map<string, ReturnRequest> = useMemo(() => {
+    const list = (myReturnsData as ReturnRequest[]) ?? [];
+    const latestReturns = new Map<string, ReturnRequest>();
+    for (const request of list) {
+      if (request.subOrderId && !latestReturns.has(request.subOrderId)) {
+        latestReturns.set(request.subOrderId, request);
+      }
+    }
+    return latestReturns;
+  }, [myReturnsData]);
 
   const receiveMutation = useMutation({
     mutationFn: async () => {
@@ -180,10 +342,13 @@ export default function OrderDetailsPage() {
     timeStyle: "short",
   });
 
-  const allDelivered = order.subOrders.every(
+  const allDelivered = order.status === "COMPLETED" || order.subOrders.every(
     (so) => so.status === "DELIVERED" || so.status === "CANCELLED"
   );
-  const canReceive = order.status === "PAID" || order.status === "SHIPPED";
+  const canReceive = order.status === "PAID";
+  const isReadyForReceipt = order.subOrders.every(
+    (so) => so.status === "SHIFTED_TO_CUSTOMER" || so.status === "CANCELLED"
+  );
 
   return (
     <div className="min-h-screen bg-background py-10 px-4 sm:px-6 lg:px-8">
@@ -261,8 +426,8 @@ export default function OrderDetailsPage() {
                 </div>
                 <div>
                   <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Payment Status</h3>
-                  <p className={`text-sm font-bold mt-1 ${order.status === 'PAID' ? 'text-emerald-600' : 'text-amber-600'}`}>
-                    {order.status === 'PAID' ? 'Paid' : 'Pending / Unpaid'}
+                  <p className={`text-sm font-bold mt-1 ${order.status === 'PAID' || order.status === 'COMPLETED' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                    {order.status === 'PAID' || order.status === 'COMPLETED' ? 'Paid' : 'Pending / Unpaid'}
                   </p>
                 </div>
               </div>
@@ -281,12 +446,14 @@ export default function OrderDetailsPage() {
                   <div>
                     <h3 className="text-sm font-semibold text-foreground">Has your order arrived?</h3>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Mark this order as received to confirm delivery. This will automatically update all seller packages.
+                      {isReadyForReceipt
+                        ? "All packages have been shifted to you. Confirm receipt to complete the order."
+                        : "This becomes available after the delivery man marks every package as shifted to customer."}
                     </p>
                   </div>
                   <Button
                     onClick={() => receiveMutation.mutate()}
-                    disabled={receiveMutation.isPending}
+                    disabled={receiveMutation.isPending || !isReadyForReceipt}
                     className="rounded-xl whitespace-nowrap"
                   >
                     {receiveMutation.isPending ? "Updating..." : "Mark as Received"}
@@ -321,7 +488,12 @@ export default function OrderDetailsPage() {
                 the order status shows Paid.
               </p>
               <div className="space-y-6">
-                {order.subOrders.map((subOrder, subIdx) => (
+                {order.subOrders.map((subOrder, subIdx) => {
+                  const existingReturn = returnsBySubOrder.get(subOrder.id);
+                  const canRequestReturn = ["SHIFTED_TO_CUSTOMER", "DELIVERED"].includes(subOrder.status)
+                    && (!existingReturn || existingReturn.status === "REJECTED");
+
+                  return (
                   <motion.div
                     key={subOrder.id}
                     initial={{ opacity: 0, y: 10 }}
@@ -373,8 +545,66 @@ export default function OrderDetailsPage() {
                         </div>
                       ))}
                     </div>
+
+                    {/* Return Request Section */}
+                    {existingReturn && !canRequestReturn ? (
+                      <div className="border-t border-border bg-muted/30 px-5 py-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                          <div className="flex items-start gap-3">
+                            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-background border border-border">
+                              <RotateCcw className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                            <div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${RETURN_STATUS_STYLE[existingReturn.status] || "bg-muted text-muted-foreground border-border"}`}>
+                                  {RETURN_STATUS_LABEL[existingReturn.status] || existingReturn.status}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  ৳{Number(existingReturn.refundAmount).toLocaleString()} refund for {existingReturn.requestedQty} item{existingReturn.requestedQty !== 1 ? "s" : ""}
+                                </span>
+                              </div>
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                Reason: {existingReturn.reason}
+                              </p>
+                              {existingReturn.disputeNote && (
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                  Seller note: {existingReturn.disputeNote}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <Link
+                            href="/dashboard/returns"
+                            className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-muted"
+                          >
+                            Track Return <ChevronRight className="h-3 w-3" />
+                          </Link>
+                        </div>
+                      </div>
+                    ) : canRequestReturn ? (
+                      <div className="border-t border-border bg-muted/30 px-5 py-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                          <div>
+                            <h4 className="text-sm font-semibold text-foreground">Not happy with this package?</h4>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Request a return and get your money refunded once the seller approves it.
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setReturnModalSubOrder(subOrder)}
+                            className="shrink-0 rounded-lg"
+                          >
+                            <RotateCcw className="text-red-700 mr-1.5 h-3.5 w-3.5" />
+                            <span className="font-semibold  text-red-700">Request Return</span>
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
                   </motion.div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -399,6 +629,14 @@ export default function OrderDetailsPage() {
 
           </div>
         </motion.div>
+
+        {/* Return Request Modal */}
+        {returnModalSubOrder && (
+          <ReturnRequestModal
+            subOrder={returnModalSubOrder}
+            onClose={() => setReturnModalSubOrder(null)}
+          />
+        )}
 
         {/* Action Button */}
         <div className="flex justify-center">

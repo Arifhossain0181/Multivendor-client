@@ -42,6 +42,13 @@ const deliveryManSchema = z.object({
   area: z.string().min(2, "Area is required"),
   termsAccepted: z.boolean().refine(val => val === true, "You must accept the terms and conditions"),
   privacyPolicyAccepted: z.boolean().refine(val => val === true, "You must accept the privacy policy"),
+  drivingLicenseImage: z.string().min(1, "Driving license image is required"),
+  nidFrontImage: z.string().min(1, "NID front image is required"),
+  nidBackImage: z.string().min(1, "NID back image is required"),
+  registrationCertificateImage: z.string().min(1, "Registration certificate image is required"),
+  taxTokenImage: z.string().min(1, "Tax token image is required"),
+  fitnessCertificateImage: z.string().min(1, "Fitness certificate image is required"),
+  routePermitImage: z.string().min(1, "Route permit image is required"),
 });
 
 type DeliveryManInput = z.infer<typeof deliveryManSchema>;
@@ -54,16 +61,34 @@ export default function DeliveryManRegisterPage() {
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitStatus, setSubmitStatus] = useState<SubmitStatus>("idle");
-  const [debugInfo, setDebugInfo] = useState<string[]>([]);
+  const documentFields = [
+    "drivingLicenseImage",
+    "nidFrontImage",
+    "nidBackImage",
+    "registrationCertificateImage",
+    "taxTokenImage",
+    "fitnessCertificateImage",
+    "routePermitImage",
+  ] as const;
 
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<DeliveryManInput>({
     resolver: zodResolver(deliveryManSchema),
     mode: "onChange",
+    defaultValues: {
+      drivingLicenseImage: "",
+      nidFrontImage: "",
+      nidBackImage: "",
+      registrationCertificateImage: "",
+      taxTokenImage: "",
+      fitnessCertificateImage: "",
+      routePermitImage: "",
+    },
   });
 
   const registerDeliveryMan = useMutation({
@@ -74,21 +99,14 @@ export default function DeliveryManRegisterPage() {
       }),
   });
 
-  const addDebug = (message: string) => {
-    const timestamp = new Date().toLocaleTimeString();
-    setDebugInfo((prev) => [...prev.slice(-4), `[${timestamp}] ${message}`]);
-  };
-
   const onSubmit = async (values: DeliveryManInput) => {
     setSubmitError(null);
     setSubmitStatus("submitting");
-    addDebug("Form submitted, validating...");
 
     if (selectedServices.length === 0) {
       const error = "Please select at least one service";
       setSubmitError(error);
       setSubmitStatus("error");
-      addDebug(`Validation error: ${error}`);
       toast.error(error);
       return;
     }
@@ -97,7 +115,6 @@ export default function DeliveryManRegisterPage() {
       const error = "Please accept terms and privacy policy";
       setSubmitError(error);
       setSubmitStatus("error");
-      addDebug(`Validation error: ${error}`);
       toast.error(error);
       return;
     }
@@ -107,12 +124,9 @@ export default function DeliveryManRegisterPage() {
       serviceType: selectedServices.join(", "),
     };
 
-    addDebug(`Submitting to API: ${JSON.stringify(payload).substring(0, 50)}...`);
-
     try {
       await registerDeliveryMan.mutateAsync(payload);
       setSubmitStatus("success");
-      addDebug("Registration successful!");
       reset();
       setSelectedServices([]);
       setPhotoPreview(null);
@@ -122,9 +136,36 @@ export default function DeliveryManRegisterPage() {
       const message = error?.message || "Registration failed, please try again";
       setSubmitStatus("error");
       setSubmitError(message);
-      addDebug(`Error: ${message}`);
       toast.error(message);
     }
+  };
+
+  const handleDocumentChange = (
+    field: (typeof documentFields)[number],
+    file?: File,
+  ) => {
+    if (!file) {
+      setValue(field, "", { shouldDirty: true, shouldValidate: true });
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      setValue(field, "", { shouldDirty: true, shouldValidate: true });
+      return;
+    }
+    if (file.size > 900 * 1024) {
+      toast.error("Each document image must be 900 KB or smaller");
+      setValue(field, "", { shouldDirty: true, shouldValidate: true });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => setValue(field, String(reader.result ?? ""), { shouldDirty: true, shouldValidate: true });
+    reader.onerror = () => {
+      setValue(field, "", { shouldDirty: true, shouldValidate: true });
+      toast.error("Could not read the selected image");
+    };
+    reader.readAsDataURL(file);
   };
 
   const toggleService = (service: string) => {
@@ -151,7 +192,33 @@ export default function DeliveryManRegisterPage() {
   }, [submitStatus]);
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-10 dark:bg-gray-900">
+    <div className="relative isolate min-h-screen bg-gray-50/75 px-4 py-10 dark:bg-gray-900/75">
+      <div
+        aria-hidden="true"
+        className="fixed inset-0 -z-10 bg-cover bg-center"
+        style={{
+          backgroundImage: "url('/Bazaari%20Delivery%20Bike%20on%20a%20Sunny%20Street.png')",
+          backgroundPosition: "center 42%",
+        }}
+      />
+      <div aria-hidden="true" className="fixed inset-0 -z-10 bg-white/65 dark:bg-gray-950/75" />
+      <section
+        className="relative isolate mx-auto mb-8 flex min-h-[280px] max-w-6xl items-center overflow-hidden rounded-3xl border border-emerald-100 bg-white/60 shadow-lg backdrop-blur-sm dark:border-emerald-900 dark:bg-gray-900/55 sm:min-h-[340px]"
+        aria-label="Bazaari delivery motorcycle on a sunny street"
+      >
+        <div className="ml-auto flex w-full max-w-xl flex-col justify-center p-6 sm:p-9 lg:p-12">
+          <span className="w-fit rounded-full border border-emerald-200 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-800 dark:border-emerald-800 dark:bg-gray-900/70 dark:text-emerald-300">
+            Delivery Partner Application
+          </span>
+          <h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
+            Deliver with <span className="text-emerald-700 dark:text-emerald-400">Bazaari</span>
+          </h2>
+          <p className="mt-3 max-w-lg text-sm leading-6 text-slate-600 dark:text-gray-300 sm:text-base">
+            Join our delivery team. Submit your details and required documents to apply.
+          </p>
+        </div>
+      </section>
+
       <form
         onSubmit={handleSubmit(onSubmit)}
         noValidate
@@ -195,18 +262,6 @@ export default function DeliveryManRegisterPage() {
           <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300">
             <p className="font-medium">Error:</p>
             <p>{submitError}</p>
-          </div>
-        )}
-
-        {/* Debug panel */}
-        {debugInfo.length > 0 && (
-          <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs font-mono dark:border-gray-700 dark:bg-gray-800">
-            <p className="mb-1 font-semibold text-gray-700 dark:text-gray-300">Debug Log:</p>
-            {debugInfo.map((info, index) => (
-              <div key={index} className="text-gray-600 dark:text-gray-400">
-                {info}
-              </div>
-            ))}
           </div>
         )}
 
@@ -456,15 +511,9 @@ export default function DeliveryManRegisterPage() {
                 type="file"
                 id="drivingLicenseImage"
                 accept="image/*"
+                required
                 className="text-sm text-gray-500 dark:text-gray-400"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => setPhotoPreview(reader.result as string);
-                    reader.readAsDataURL(file);
-                  }
-                }}
+                onChange={(e) => handleDocumentChange("drivingLicenseImage", e.target.files?.[0])}
               />
               {errors.drivingLicenseImage && <p className="text-xs text-red-500">{errors.drivingLicenseImage.message}</p>}
             </div>
@@ -475,15 +524,9 @@ export default function DeliveryManRegisterPage() {
                 type="file"
                 id="nidFrontImage"
                 accept="image/*"
+                required
                 className="text-sm text-gray-500 dark:text-gray-400"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => setPhotoPreview(reader.result as string);
-                    reader.readAsDataURL(file);
-                  }
-                }}
+                onChange={(e) => handleDocumentChange("nidFrontImage", e.target.files?.[0])}
               />
               {errors.nidFrontImage && <p className="text-xs text-red-500">{errors.nidFrontImage.message}</p>}
             </div>
@@ -494,89 +537,63 @@ export default function DeliveryManRegisterPage() {
                 type="file"
                 id="nidBackImage"
                 accept="image/*"
+                required
                 className="text-sm text-gray-500 dark:text-gray-400"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => setPhotoPreview(reader.result as string);
-                    reader.readAsDataURL(file);
-                  }
-                }}
+                onChange={(e) => handleDocumentChange("nidBackImage", e.target.files?.[0])}
               />
               {errors.nidBackImage && <p className="text-xs text-red-500">{errors.nidBackImage.message}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="registrationCertificateImage">Registration Certificate</Label>
+              <Label htmlFor="registrationCertificateImage">Registration Certificate <span className="text-red-500">*</span></Label>
               <input
                 type="file"
                 id="registrationCertificateImage"
                 accept="image/*"
+                required
                 className="text-sm text-gray-500 dark:text-gray-400"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => setPhotoPreview(reader.result as string);
-                    reader.readAsDataURL(file);
-                  }
-                }}
+                onChange={(e) => handleDocumentChange("registrationCertificateImage", e.target.files?.[0])}
               />
+              {errors.registrationCertificateImage && <p className="text-xs text-red-500">{errors.registrationCertificateImage.message}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="taxTokenImage">Tax Token</Label>
+              <Label htmlFor="taxTokenImage">Tax Token <span className="text-red-500">*</span></Label>
               <input
                 type="file"
                 id="taxTokenImage"
                 accept="image/*"
+                required
                 className="text-sm text-gray-500 dark:text-gray-400"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => setPhotoPreview(reader.result as string);
-                    reader.readAsDataURL(file);
-                  }
-                }}
+                onChange={(e) => handleDocumentChange("taxTokenImage", e.target.files?.[0])}
               />
+              {errors.taxTokenImage && <p className="text-xs text-red-500">{errors.taxTokenImage.message}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="fitnessCertificateImage">Fitness Certificate</Label>
+              <Label htmlFor="fitnessCertificateImage">Fitness Certificate <span className="text-red-500">*</span></Label>
               <input
                 type="file"
                 id="fitnessCertificateImage"
                 accept="image/*"
+                required
                 className="text-sm text-gray-500 dark:text-gray-400"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => setPhotoPreview(reader.result as string);
-                    reader.readAsDataURL(file);
-                  }
-                }}
+                onChange={(e) => handleDocumentChange("fitnessCertificateImage", e.target.files?.[0])}
               />
+              {errors.fitnessCertificateImage && <p className="text-xs text-red-500">{errors.fitnessCertificateImage.message}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="routePermitImage">Route Permit</Label>
+              <Label htmlFor="routePermitImage">Route Permit <span className="text-red-500">*</span></Label>
               <input
                 type="file"
                 id="routePermitImage"
                 accept="image/*"
+                required
                 className="text-sm text-gray-500 dark:text-gray-400"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => setPhotoPreview(reader.result as string);
-                    reader.readAsDataURL(file);
-                  }
-                }}
+                onChange={(e) => handleDocumentChange("routePermitImage", e.target.files?.[0])}
               />
+              {errors.routePermitImage && <p className="text-xs text-red-500">{errors.routePermitImage.message}</p>}
             </div>
           </div>
         </div>
@@ -619,43 +636,6 @@ export default function DeliveryManRegisterPage() {
           </Link>
         </div>
 
-        {/* Hidden config panel for debugging */}
-        <div className="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4 text-xs dark:border-gray-700 dark:bg-gray-800">
-          <details>
-            <summary className="cursor-pointer font-semibold text-gray-700 dark:text-gray-300">
-              Debug Config (Click to expand)
-            </summary>
-            <div className="mt-3 space-y-2">
-              <div>
-                <p className="font-medium text-gray-600 dark:text-gray-400">Form Validation:</p>
-                <p className="text-gray-600 dark:text-gray-400">Errors: {Object.keys(errors).length}</p>
-                <p className="text-gray-600 dark:text-gray-400">Selected Services: {selectedServices.length}</p>
-                <p className="text-gray-600 dark:text-gray-400">Form Valid: {isFormValid ? "Yes" : "No"}</p>
-              </div>
-              <div>
-                <p className="font-medium text-gray-600 dark:text-gray-400">Button State:</p>
-                <p className="text-gray-600 dark:text-gray-400">Disabled: {isButtonDisabled ? "Yes" : "No"}</p>
-                <p className="text-gray-600 dark:text-gray-400">React Hook Form Submitting: {isSubmitting ? "Yes" : "No"}</p>
-                <p className="text-gray-600 dark:text-gray-400">Mutation Pending: {registerDeliveryMan.isPending ? "Yes" : "No"}</p>
-              </div>
-              <div>
-                <p className="font-medium text-gray-600 dark:text-gray-400">API Status:</p>
-                <p className="text-gray-600 dark:text-gray-400">Base URL: {process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}</p>
-                <p className="text-gray-600 dark:text-gray-400">Endpoint: /delivery/register</p>
-              </div>
-              {Object.keys(errors).length > 0 && (
-                <div>
-                  <p className="font-medium text-red-600 dark:text-red-400">Validation Errors:</p>
-                  {Object.entries(errors).map(([field, error]) => (
-                    <p key={field} className="text-red-600 dark:text-red-400">
-                      {field}: {(error as any)?.message}
-                    </p>
-                  ))}
-                </div>
-              )}
-            </div>
-          </details>
-        </div>
       </form>
     </div>
   );

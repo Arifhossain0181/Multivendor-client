@@ -62,7 +62,7 @@ function StarIcon() {
 
 export default function TrustBadges() {
   return (
-    <section className="w-full bg-white dark:bg-background transition-colors duration-500">
+    <section className="w-full bg-transparent transition-colors duration-500">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
         <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
           <motion.p

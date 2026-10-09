@@ -80,6 +80,11 @@ export async function resolveReturn(returnId: string, action: "approve" | "rejec
   return data;
 }
 
+export async function adminResolveReturn(returnId: string, action: "approve" | "reject", note?: string) {
+  const { data } = await api.patch(`/refunds/admin/returns/${returnId}/resolve`, { action, note });
+  return data;
+}
+
 export async function processRefund(returnId: string) {
   const { data } = await api.patch(`/refunds/returns/${returnId}/refund`);
   return data;

@@ -80,10 +80,10 @@ export default function AnimatedProducts() {
   if (productsLoading) {
     return (
       <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="h-10 w-64 bg-gray-200 dark:bg-gray-800 animate-pulse rounded mb-12" />
+        <div className="h-10 w-64 bg-muted animate-pulse rounded mb-12" />
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-[400px] rounded-2xl bg-gray-100 dark:bg-gray-800 animate-pulse" />
+            <div key={i} className="h-[400px] rounded-2xl bg-muted animate-pulse" />
           ))}
         </div>
       </section>
@@ -146,7 +146,7 @@ export default function AnimatedProducts() {
                >
                  <Link
                    href={`/shoP/products/${product.id}`}
-                   className="p-3 bg-white text-foreground rounded-full shadow-xl transform scale-70 group-hover:scale-100 transition-transform duration-300 hover:bg-gray-100"
+                   className="p-3 bg-background text-foreground rounded-full shadow-xl transform scale-70 group-hover:scale-100 transition-transform duration-300 hover:bg-muted"
                  >
                    <Eye size={20} />
                  </Link>

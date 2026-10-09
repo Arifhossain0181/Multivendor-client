@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -14,6 +14,10 @@ import { api } from '@/src/lib/axios';
 import { Skeleton } from '@/src/components/ui/skeleton';
 import { Input } from '@/src/components/ui/input';
 import { Button } from '@/src/components/ui/button';
+import { Textarea } from '@/src/components/ui/textarea';
+import { toast } from 'sonner';
+import { useCreateReturn, useMyReturns } from '@/src/features/refund/useRefund';
+import type { ReturnRequest } from '@/src/services/refund.service';
 
 interface OrderItem {
   id: string;
@@ -121,6 +125,56 @@ const fetchOrders = async (page: number): Promise<{ orders: Order[]; meta: Meta 
   return data.data;
 };
 
+function OrderReturnForm({ subOrder, onClose }: { subOrder: SubOrder; onClose: () => void }) {
+  const [reason, setReason] = useState('');
+  const [requestedQty, setRequestedQty] = useState(1);
+  const createReturn = useCreateReturn();
+  const totalQty = subOrder.items.reduce((sum, item) => sum + item.quantity, 0);
+  let remainingQty = requestedQty;
+  const estimatedRefund = subOrder.items.reduce((sum, item) => {
+    const quantity = Math.min(remainingQty, item.quantity);
+    remainingQty -= quantity;
+    return sum + Number(item.unitPrice) * quantity;
+  }, 0);
+
+  const submit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (reason.trim().length < 5) {
+      toast.error('Please explain the return reason (at least 5 characters)');
+      return;
+    }
+    createReturn.mutate({ subOrderId: subOrder.id, reason: reason.trim(), requestedQty }, {
+      onSuccess: onClose,
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <form onSubmit={submit} className="w-full max-w-lg space-y-4 rounded-2xl border border-border bg-card p-6 shadow-xl">
+        <div>
+          <h2 className="text-lg font-bold">Request a return</h2>
+          <p className="mt-1 text-sm text-muted-foreground">The seller will review your request. An approved refund is processed to your original payment method.</p>
+        </div>
+        <label className="block space-y-2 text-sm font-medium">
+          Quantity to return
+          <select value={requestedQty} onChange={(event) => setRequestedQty(Number(event.target.value))} className="h-10 w-full rounded-md border border-input bg-background px-3">
+            {Array.from({ length: Math.max(totalQty, 1) }, (_, index) => index + 1).map((quantity) => <option key={quantity} value={quantity}>{quantity}</option>)}
+          </select>
+        </label>
+        <p className="text-sm text-muted-foreground">Estimated refund: <span className="font-semibold text-foreground">৳{estimatedRefund.toLocaleString()}</span></p>
+        <label className="block space-y-2 text-sm font-medium">
+          Reason for return
+          <Textarea value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Tell us why you want to return these items" rows={4} required minLength={5} />
+        </label>
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+          <Button type="submit" disabled={createReturn.isPending || totalQty < 1}>{createReturn.isPending ? 'Submitting...' : 'Submit request'}</Button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 function OrderCardSkeleton() {
   return (
     <div className="bg-card rounded-3xl border border-border p-6 shadow-sm">
@@ -167,17 +221,38 @@ function OrderCardSkeleton() {
 }
 
 export default function OrdersPage() {
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'PAID' | 'PENDING' | 'CANCELLED'>('ALL');
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [returnSubOrder, setReturnSubOrder] = useState<SubOrder | null>(null);
+  const { data: myReturns, isLoading: returnsLoading } = useMyReturns();
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['orders', page],
     queryFn: () => fetchOrders(page),
+    refetchInterval: 5000,
+  });
+
+  const receiveOrder = useMutation({
+    mutationFn: async (orderId: string) => {
+      const { data } = await api.patch(`/orders/${orderId}/receive`);
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Order marked as received");
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-orders"] });
+    },
+    onError: (error: any) => toast.error(error?.message || "Could not mark this order as received"),
   });
 
   const orders = data?.orders ?? [];
+  const latestReturnBySubOrder = new Map<string, ReturnRequest>();
+  (myReturns ?? []).forEach((request: ReturnRequest) => {
+    if (!latestReturnBySubOrder.has(request.subOrderId)) latestReturnBySubOrder.set(request.subOrderId, request);
+  });
   const meta = data?.meta;
 
   const filteredOrders = useMemo(() => {
@@ -443,8 +518,8 @@ export default function OrdersPage() {
                     transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                     layout
                   >
-                    <Link href={`/orders/${order.id}`} className="block group">
-                      <div className="bg-card rounded-3xl border border-border p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:shadow-primary/5 dark:hover:shadow-primary/10 cursor-pointer hover:border-border/80">
+                    <div className="bg-card rounded-3xl border border-border p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:shadow-primary/5 dark:hover:shadow-primary/10 hover:border-border/80">
+                      <Link href={`/orders/${order.id}`} className="block group">
                         {/* Order Card Header */}
                         <div className="flex items-start justify-between flex-wrap gap-4 pb-4 border-b border-border">
                           <div className="flex gap-4 items-center">
@@ -518,8 +593,43 @@ export default function OrdersPage() {
                             </motion.div>
                           </div>
                         </div>
-                      </div>
-                    </Link>
+                      </Link>
+                      {order.status === "PAID" && (
+                        <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+                          <p className="text-xs text-muted-foreground">
+                            {order.subOrders.length > 0 && order.subOrders.every((subOrder) => subOrder.status === "SHIFTED_TO_CUSTOMER" || subOrder.status === "CANCELLED")
+                              ? "All packages are with you. Confirm receipt to complete this order."
+                              : "Mark as received will unlock after the delivery man shifts every package to you."}
+                          </p>
+                          <Button
+                            size="sm"
+                            disabled={receiveOrder.isPending || order.subOrders.length === 0 || !order.subOrders.every((subOrder) => subOrder.status === "SHIFTED_TO_CUSTOMER" || subOrder.status === "CANCELLED")}
+                            onClick={() => receiveOrder.mutate(order.id)}
+                            className="shrink-0"
+                          >
+                            {receiveOrder.isPending ? "Updating..." : "Mark as Received"}
+                          </Button>
+                        </div>
+                      )}
+                      {order.subOrders.filter((subOrder) => subOrder.status === 'DELIVERED').map((subOrder) => {
+                        const returnRequest = latestReturnBySubOrder.get(subOrder.id);
+                        const canRequestAgain = !returnRequest || returnRequest.status === 'REJECTED';
+                        return (
+                          <div key={subOrder.id} className="mt-4 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="text-sm">
+                              <p className="font-semibold">Return for delivered package</p>
+                              {returnRequest && !canRequestAgain && <p className="mt-1 text-muted-foreground">Request status: <span className="font-medium text-foreground">{returnRequest.status.replaceAll('_', ' ')}</span>{returnRequest.status === 'REFUNDED' ? ` · ৳${Number(returnRequest.refundAmount).toLocaleString()} refunded` : ''}</p>}
+                              {returnRequest?.status === 'REJECTED' && <p className="mt-1 text-muted-foreground">Your previous request was rejected. You can submit a new request.</p>}
+                            </div>
+                            {canRequestAgain ? (
+                              <Button size="sm" variant="outline" onClick={() => setReturnSubOrder(subOrder)} disabled={returnsLoading} className="shrink-0">Request Return</Button>
+                            ) : (
+                              <Link href="/dashboard/returns" className="text-sm font-semibold text-primary hover:underline">Track return</Link>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </motion.div>
                 );
               })}
@@ -556,6 +666,7 @@ export default function OrdersPage() {
           </motion.div>
         )}
       </main>
+      {returnSubOrder && <OrderReturnForm subOrder={returnSubOrder} onClose={() => setReturnSubOrder(null)} />}
     </div>
   );
 }

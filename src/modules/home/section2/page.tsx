@@ -56,7 +56,7 @@ function Counter({ stat }: { stat: Stat }) {
 
 export default function WhyChooseUs() {
   return (
-    <section className="w-full bg-white dark:bg-background transition-colors duration-500">
+    <section className="w-full bg-transparent transition-colors duration-500">
       <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
         <motion.h2
           initial="hidden"

@@ -33,6 +33,11 @@ export const adminService = {
     return data;
   },
 
+  getSellerApplications: async (status?: string) => {
+    const { data } = await api.get("/admin/sellers", { params: { status } });
+    return data;
+  },
+
   updateSellerStatus: async (
     userId: string,
     status: SellerStatus

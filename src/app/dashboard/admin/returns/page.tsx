@@ -10,11 +10,15 @@ import {
   ShieldAlert,
   Loader2,
   DollarSign,
+  UserRound,
+  Store,
+  Package,
 } from "lucide-react";
 import {
   useAdminReturns,
   useAdminDisputes,
   useProcessRefund,
+  useAdminResolveReturn,
   useResolveDispute,
 } from "@/src/features/refund/useRefund";
 import { Skeleton } from "@/src/components/ui/skeleton";
@@ -43,6 +47,11 @@ function RefundModal({ returnId, onClose }: { returnId: string; onClose: () => v
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
           This will process a Stripe refund for this return request. This action cannot be undone.
         </p>
+        {refundMutation.error && (
+          <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">
+            {(refundMutation.error as Error).message || "Refund failed. Please review the return and payment details."}
+          </p>
+        )}
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={onClose}>Cancel</Button>
           <Button onClick={handleRefund} disabled={refundMutation.isPending}>
@@ -54,6 +63,52 @@ function RefundModal({ returnId, onClose }: { returnId: string; onClose: () => v
           </Button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ReturnDecisionModal({
+  returnId,
+  action,
+  onClose,
+}: {
+  returnId: string;
+  action: "approve" | "reject";
+  onClose: () => void;
+}) {
+  const [note, setNote] = useState("");
+  const decisionMutation = useAdminResolveReturn();
+  const isReject = action === "reject";
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    decisionMutation.mutate({ returnId, action, note: note.trim() || undefined }, { onSuccess: onClose });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <form onSubmit={handleSubmit} className="w-full max-w-lg space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{isReject ? "Reject return request" : "Approve return request"}</h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {isReject
+              ? "Provide a clear reason. The customer will see this decision in their return status."
+              : "Approval moves this request to the refund queue. You will still need to process the refund separately."}
+          </p>
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            {isReject ? "Reason for rejection" : "Internal/customer note (optional)"}
+          </label>
+          <Textarea value={note} onChange={(event) => setNote(event.target.value)} rows={4} required={isReject} minLength={isReject ? 5 : undefined} placeholder={isReject ? "Explain why this return cannot be approved" : "Add context for the customer or audit trail"} />
+        </div>
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+          <Button type="submit" variant={isReject ? "destructive" : "default"} disabled={decisionMutation.isPending || (isReject && note.trim().length < 5)}>
+            {decisionMutation.isPending ? "Saving..." : isReject ? "Confirm rejection" : "Approve request"}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }
@@ -109,6 +164,7 @@ export default function AdminReturnsPage() {
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [refundId, setRefundId] = useState<string | null>(null);
   const [disputeId, setDisputeId] = useState<string | null>(null);
+  const [returnDecision, setReturnDecision] = useState<{ id: string; action: "approve" | "reject" } | null>(null);
 
   const { data: returnsData, isLoading: returnsLoading } = useAdminReturns(cursor, 10);
   const { data: disputesData, isLoading: disputesLoading } = useAdminDisputes(cursor, 10);
@@ -175,12 +231,45 @@ export default function AdminReturnsPage() {
                   </div>
                   <div>
                     <p className="font-medium text-gray-500 dark:text-gray-400">Created</p>
-                    <p className="text-gray-800 dark:text-gray-100">{new Date(returnItem.createdAt).toLocaleDateString()}</p>
+                    <p className="text-gray-800 dark:text-gray-100">{new Date(returnItem.createdAt).toLocaleString()}</p>
                   </div>
                 </div>
 
+                <div className="mb-4 grid gap-3 rounded-lg border border-gray-100 bg-gray-50 p-3 text-xs dark:border-gray-800 dark:bg-gray-800/40 sm:grid-cols-2">
+                  <div className="flex items-start gap-2">
+                    <UserRound className="mt-0.5 h-4 w-4 text-gray-400" />
+                    <div><p className="font-medium text-gray-500 dark:text-gray-400">Customer</p><p className="text-gray-800 dark:text-gray-100">{returnItem.customer.name} · {returnItem.customer.email}</p></div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Store className="mt-0.5 h-4 w-4 text-gray-400" />
+                    <div><p className="font-medium text-gray-500 dark:text-gray-400">Seller</p><p className="text-gray-800 dark:text-gray-100">{returnItem.seller.shopName}{returnItem.seller.user?.email ? ` · ${returnItem.seller.user.email}` : ""}</p></div>
+                  </div>
+                  <div className="flex items-start gap-2 sm:col-span-2">
+                    <Package className="mt-0.5 h-4 w-4 text-gray-400" />
+                    <div className="min-w-0"><p className="font-medium text-gray-500 dark:text-gray-400">Requested items ({returnItem.requestedQty} to return)</p><p className="text-gray-800 dark:text-gray-100">{returnItem.subOrder.items.map((item) => `${item.productName} (${item.variantName}) × ${item.quantity}`).join(" · ") || "No item details available"}</p></div>
+                  </div>
+                </div>
+
+                {returnItem.disputeNote && (
+                  <div className="mb-4 rounded-lg border border-gray-100 bg-white p-3 text-xs dark:border-gray-800 dark:bg-gray-800/40">
+                    <p className="font-medium text-gray-500 dark:text-gray-400">Previous review note</p>
+                    <p className="mt-1 text-gray-800 dark:text-gray-100">{returnItem.disputeNote}</p>
+                  </div>
+                )}
+
+                {returnItem.status === "PENDING" && (
+                  <div className="flex flex-wrap justify-end gap-2 border-t border-gray-100 pt-4 dark:border-gray-800">
+                    <Button size="sm" variant="outline" onClick={() => setReturnDecision({ id: returnItem.id, action: "reject" })}>
+                      <XCircle size={14} className="mr-1" /> Reject request
+                    </Button>
+                    <Button size="sm" onClick={() => setReturnDecision({ id: returnItem.id, action: "approve" })}>
+                      <CheckCircle2 size={14} className="mr-1" /> Approve for refund
+                    </Button>
+                  </div>
+                )}
                 {returnItem.status === "APPROVED" && (
-                  <div className="flex justify-end pt-2">
+                  <div className="flex items-center justify-between gap-3 border-t border-gray-100 pt-4 dark:border-gray-800">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Approved and awaiting admin refund processing.</p>
                     <Button size="sm" onClick={() => setRefundId(returnItem.id)}>
                       <DollarSign size={14} className="mr-1" /> Process Refund
                     </Button>
@@ -235,6 +324,7 @@ export default function AdminReturnsPage() {
       <AnimatePresence>
         {refundId && <RefundModal returnId={refundId} onClose={() => setRefundId(null)} />}
         {disputeId && <ResolveDisputeModal disputeId={disputeId} onClose={() => setDisputeId(null)} />}
+        {returnDecision && <ReturnDecisionModal returnId={returnDecision.id} action={returnDecision.action} onClose={() => setReturnDecision(null)} />}
       </AnimatePresence>
     </div>
   );

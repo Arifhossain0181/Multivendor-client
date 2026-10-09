@@ -73,7 +73,7 @@ const features: Feature[] = [
 
 export default function AdminFeaturesSection() {
   return (
-    <section className="bg-white dark:bg-background px-4 py-16 sm:px-6 sm:py-20 lg:px-8 transition-colors duration-500">
+    <section className="bg-transparent px-4 py-16 sm:px-6 sm:py-20 lg:px-8 transition-colors duration-500">
       <div className="mx-auto max-w-6xl">
         {/* Heading */}
         <motion.div

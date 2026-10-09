@@ -5,13 +5,14 @@ import { Navbar5 } from "./navbar5";
 import { Footer7 } from "./footer7";
 
 
-const NO_LAYOUT_ROUTES = ["/dashboard", "/admin", "/seller", "/customers"];
+const NO_LAYOUT_ROUTES = ["/admin", "/seller", "/customers"];
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   const hideLayout =
     pathname === "/seller" ||
+    pathname.startsWith("/dashboard") ||
     NO_LAYOUT_ROUTES.filter((route) => route !== "/seller").some((route) =>
       pathname.startsWith(route),
     );

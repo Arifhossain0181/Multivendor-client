@@ -37,7 +37,7 @@ interface SubOrder {
   id: string;
   sellerId: string;
   subtotal: number;
-  status: "PENDING" | "CONFIRMED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+  status: "PENDING" | "CONFIRMED" | "SHIPPED" | "SHIFTED_TO_CUSTOMER" | "DELIVERED" | "CANCELLED";
   items: SubOrderItem[];
   masterOrderId: string;
   createdAt: string;
@@ -53,6 +53,7 @@ const SUB_STATUS_STYLE: Record<string, string> = {
   PENDING: "bg-amber-500/10 text-amber-600 border-amber-200 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-800",
   CONFIRMED: "bg-sky-500/10 text-sky-600 border-sky-200 dark:bg-sky-500/20 dark:text-sky-400 dark:border-sky-800",
   SHIPPED: "bg-indigo-500/10 text-indigo-600 border-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-400 dark:border-indigo-800",
+  SHIFTED_TO_CUSTOMER: "bg-cyan-500/10 text-cyan-700 border-cyan-200 dark:bg-cyan-500/20 dark:text-cyan-300 dark:border-cyan-800",
   DELIVERED: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400 dark:border-emerald-800",
   CANCELLED: "bg-red-500/10 text-red-600 border-red-200 dark:bg-red-500/20 dark:text-red-400 dark:border-red-800",
 };
@@ -61,6 +62,7 @@ const SUB_STATUS_LABEL: Record<string, string> = {
   PENDING: "Pending",
   CONFIRMED: "Confirmed",
   SHIPPED: "Shipped",
+  SHIFTED_TO_CUSTOMER: "Shifted to Customer",
   DELIVERED: "Delivered",
   CANCELLED: "Cancelled",
 };
@@ -75,6 +77,8 @@ const getSubStatusIcon = (status: string) => {
       return <CheckCircle2 className="h-4 w-4 text-sky-600 dark:text-sky-400" />;
     case "SHIPPED":
       return <Truck className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />;
+    case "SHIFTED_TO_CUSTOMER":
+      return <Truck className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />;
     case "CANCELLED":
       return <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />;
     default:
@@ -85,7 +89,8 @@ const getSubStatusIcon = (status: string) => {
 const NEXT_STATUS: Record<string, string | null> = {
   PENDING: "CONFIRMED",
   CONFIRMED: "SHIPPED",
-  SHIPPED: "DELIVERED",
+  SHIPPED: null,
+  SHIFTED_TO_CUSTOMER: null,
   DELIVERED: null,
   CANCELLED: null,
 };
@@ -528,7 +533,11 @@ export default function SellerFulfillmentsPage() {
                                     <ChevronRight size={16} className="ml-1" />
                                   </>
                                 ) : (
-                                  "Order Completed"
+                                  subOrder.status === "SHIPPED"
+                                    ? "Waiting for delivery man"
+                                    : subOrder.status === "SHIFTED_TO_CUSTOMER"
+                                      ? "Waiting for customer receipt"
+                                      : "Order Completed"
                                 )}
                               </Button>
                             </div>

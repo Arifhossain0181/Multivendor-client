@@ -26,7 +26,7 @@ export function useLogin() {
               ? "/seller"
               : user.role === "DELIVERY"
                 ? "/delivery"
-                : "/shoP/products";
+                : "/dashboard";
 
         router.replace(destination);
     },

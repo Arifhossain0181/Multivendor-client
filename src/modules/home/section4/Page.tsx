@@ -69,7 +69,7 @@ export default function BuyerSellerFeaturesSection() {
   };
 
   return (
-    <section className="overflow-hidden bg-white dark:bg-background px-4 py-16 sm:px-6 sm:py-20 lg:px-8 transition-colors duration-500">
+    <section className="overflow-hidden bg-transparent px-4 py-16 sm:px-6 sm:py-20 lg:px-8 transition-colors duration-500">
       <div className="mx-auto max-w-6xl">
         {/* Heading */}
         <motion.div
@@ -223,7 +223,7 @@ export default function BuyerSellerFeaturesSection() {
               whileHover={{ y: -4 }}
               className="absolute left-0 top-16 w-32 overflow-hidden rounded-xl bg-card shadow-lg ring-1 ring-border"
             >
-              <div className="flex items-center gap-1.5 bg-sky-400 px-3 py-2 text-white">
+              <div className="flex items-center gap-1.5 bg-sky-600 px-3 py-2 text-white dark:bg-sky-700">
                 <Award size={13} />
                 <span className="text-[10px] font-semibold">Reward Points</span>
               </div>
@@ -260,8 +260,8 @@ export default function BuyerSellerFeaturesSection() {
               </div>
               <div className="px-3 pb-3">
                 <div className="flex items-center justify-center rounded-md bg-emerald-400 py-1.5">
-                  <CreditCard size={11} className="mr-1 text-gray-900" />
-                  <span className="text-[10px] font-semibold text-gray-900">
+                  <CreditCard size={11} className="mr-1 text-slate-950" />
+                  <span className="text-[10px] font-semibold text-slate-950">
                     Checkout
                   </span>
                 </div>

@@ -392,8 +392,7 @@ export default function DashboardOrdersPage() {
                   }}
                   transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <Link href={`/orders/${order.id}`} className="block group">
-                    <div className="bg-card rounded-3xl border border-border p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:shadow-primary/5 dark:hover:shadow-primary/10 cursor-pointer hover:border-border/80">
+                    <div className="group bg-card rounded-3xl border border-border p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:shadow-primary/5 dark:hover:shadow-primary/10 hover:border-border/80">
                       {/* Order Card Header */}
                       <div className="flex items-start justify-between flex-wrap gap-4 pb-4 border-b border-border">
                         <div className="flex gap-4 items-center">
@@ -458,22 +457,16 @@ export default function DashboardOrdersPage() {
                             </span>
                           )}
                           {(order.status === "COMPLETED" || order.status === "DELIVERED") && (
-                            <Link href={`/dashboard/returns?orderId=${order.id}`}>
-                              <Button size="sm" variant="outline" className="text-xs">
-                                Request Return
-                              </Button>
+                            <Link href={`/dashboard/returns?orderId=${order.id}`} className="inline-flex items-center rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-muted">
+                              Request Return
                             </Link>
                           )}
-                          <motion.div
-                            whileHover={{ scale: 1.1 }}
-                            className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all"
-                          >
+                          <Link href={`/orders/${order.id}`} aria-label={`View order ${order.id}`} className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary transition-all hover:bg-primary hover:text-primary-foreground">
                             <ChevronRight size={18} />
-                          </motion.div>
+                          </Link>
                         </div>
                       </div>
                     </div>
-                  </Link>
                 </motion.div>
               );
             })}

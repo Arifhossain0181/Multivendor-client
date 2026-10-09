@@ -49,7 +49,7 @@ export default function ResourceSection() {
   };
 
   return (
-    <section ref={containerRef} className="w-full bg-muted/30 dark:bg-muted/10 py-16 lg:py-24 overflow-hidden transition-colors duration-500">
+    <section ref={containerRef} className="w-full bg-transparent py-16 lg:py-24 overflow-hidden transition-colors duration-500">
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 xl:px-20 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
         
         {/* ---------------- LEFT CONTENT SECTION ---------------- */}
@@ -80,10 +80,10 @@ export default function ResourceSection() {
 
           {/* Slider Buttons (Desktop) */}
           <div className="hidden lg:flex items-center gap-3 pt-8">
-            <button className="p-3 rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-900 hover:text-white hover:border-slate-900 active:scale-95 transition-all duration-300">
+            <button aria-label="Previous resources" className="p-3 rounded-md border border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground active:scale-95 transition-all duration-300">
               <ArrowLeft size={18} />
             </button>
-            <button className="p-3 rounded-md border border-slate-900 bg-white text-slate-900 hover:bg-slate-900 hover:text-white active:scale-95 transition-all duration-300">
+            <button aria-label="Next resources" className="p-3 rounded-md border border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground active:scale-95 transition-all duration-300">
               <ArrowRight size={18} />
             </button>
           </div>
@@ -102,7 +102,7 @@ export default function ResourceSection() {
               className="flex flex-col bg-card border border-border rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300 group cursor-pointer"
             >
               {/* Image Container with Zoom Effect */}
-              <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100">
+              <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
                 <img
                   src={item.image}
                   alt={item.title}
@@ -130,10 +130,10 @@ export default function ResourceSection() {
 
         {/* Slider Buttons (Mobile View) */}
         <div className="flex lg:hidden items-center gap-3 mx-auto pt-4">
-          <button className="p-3 rounded-md border border-slate-300 bg-white text-slate-600">
+          <button aria-label="Previous resources" className="p-3 rounded-md border border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
             <ArrowLeft size={18} />
           </button>
-          <button className="p-3 rounded-md border border-slate-900 bg-white text-slate-900">
+          <button aria-label="Next resources" className="p-3 rounded-md border border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
             <ArrowRight size={18} />
           </button>
         </div>

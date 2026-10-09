@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   createReturnRequest,
+  adminResolveReturn,
   getMyReturns,
   getSellerReturns,
   resolveReturn,
@@ -66,6 +67,21 @@ export function useResolveReturn() {
   });
 }
 
+export function useAdminResolveReturn() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ returnId, action, note }: { returnId: string; action: "approve" | "reject"; note?: string }) =>
+      adminResolveReturn(returnId, action, note),
+    onSuccess: (_data, variables) => {
+      toast.success(variables.action === "approve" ? "Return approved. It is ready for refund processing." : "Return request rejected");
+      queryClient.invalidateQueries({ queryKey: refundKeys.all });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.error || "Failed to review return request");
+    },
+  });
+}
+
 export function useProcessRefund() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -75,7 +91,7 @@ export function useProcessRefund() {
       queryClient.invalidateQueries({ queryKey: refundKeys.all });
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.error || "Failed to process refund");
+      toast.error(error?.message || error?.response?.data?.error || "Failed to process refund");
     },
   });
 }

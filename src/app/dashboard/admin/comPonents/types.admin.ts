@@ -1,5 +1,5 @@
 export type SellerStatus = "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED";
-export type UserRole = "CUSTOMER" | "SELLER" | "ADMIN" | "DELIVERY";
+export type UserRole = "CUSTOMER" | "USER" | "SELLER" | "ADMIN" | "DELIVERY";
 export type DeliveryManStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 export interface AdminUser {
@@ -12,6 +12,11 @@ export interface AdminUser {
   paidOrderCount?: number;
   totalPaidAmount?: number;
   lastPaidOrderAt?: string | null;
+  paidSellerShops?: Array<{
+    shopName: string;
+    paidOrderCount: number;
+    totalPaidAmount: number;
+  }>;
   createdAt: string;
   isActive: boolean;
 }

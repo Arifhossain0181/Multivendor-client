@@ -1,185 +1,86 @@
-import {
-  FaFacebook,
-  FaGithub,
-  FaInstagram,
-  FaLinkedin,
-  FaTwitter,
-} from "react-icons/fa";
-import { cn } from "@/src/libs/utils";
 import Link from "next/link";
+import { ArrowUpRight, ShoppingCart } from "lucide-react";
+import { cn } from "@/src/libs/utils";
 
-interface FooterLink {
-  name: string;
-  href: string;
-}
-interface FooterSection {
-  title: string;
-  links: FooterLink[];
-}
-interface FooterSocialLink {
-  icon: React.ReactNode;
-  href: string;
-  label: string;
-}
-interface FooterLogo {
-  url: string;
-  src: string;
-  alt: string;
-  title: string;
-}
-
-interface FooterBasicProps {
-  logo?: FooterLogo;
-  description?: string;
-  sections?: FooterSection[];
-  socialLinks?: FooterSocialLink[];
-  copyright?: string;
-  legalLinks?: FooterLink[];
-  className?: string;
-}
-
-type Footer7Props = FooterBasicProps;
-type Props = Partial<Footer7Props>;
-
-const defaultProps: Footer7Props = {
-  logo: {
-    url: "https://www.shadcnblocks.com",
-    src: "/images/logo/shadcnblocks-logo-word.svg",
-    alt: "logo",
-    title: "Shadcnblocks.com",
+const footerSections = [
+  {
+    title: "Shop",
+    links: [
+      { name: "Browse Products", href: "/shoP/products" },
+      { name: "Categories", href: "/#categories" },
+      { name: "Shopping Cart", href: "/cart" },
+      { name: "My Orders", href: "/orders" },
+    ],
   },
-  description: "Finely crafted blocks built with Shadcn UI.",
-  sections: [
-    {
-      title: "Product",
-      links: [
-        { name: "Overview", href: "#" },
-        { name: "Pricing", href: "#" },
-        { name: "Marketplace", href: "#" },
-        { name: "Features", href: "#" },
-        { name: "Integrations", href: "#" },
-      ],
-    },
-    {
-      title: "Company",
-      links: [
-        { name: "About", href: "#" },
-        { name: "Team", href: "#" },
-        { name: "Blog", href: "#" },
-        { name: "Careers", href: "#" },
-        { name: "Contact", href: "#" },
-      ],
-    },
-    {
-      title: "Support",
-      links: [
-        { name: "Help center", href: "#" },
-        { name: "Documentation", href: "#" },
-        { name: "Status", href: "#" },
-        { name: "Community", href: "#" },
-      ],
-    },
-    {
-      title: "Resources",
-      links: [
-        { name: "Guides", href: "#" },
-        { name: "Templates", href: "#" },
-        { name: "Sales", href: "#" },
-        { name: "Advertise", href: "#" },
-      ],
-    },
-  ],
-  socialLinks: [
-    {
-      icon: <FaInstagram className="size-5" />,
-      href: "#",
-      label: "Instagram",
-    },
-    { icon: <FaFacebook className="size-5" />, href: "#", label: "Facebook" },
-    { icon: <FaTwitter className="size-5" />, href: "#", label: "Twitter" },
-    { icon: <FaLinkedin className="size-5" />, href: "#", label: "LinkedIn" },
-    { icon: <FaGithub className="size-5" />, href: "#", label: "GitHub" },
-  ],
-  copyright: "© 2024 Shadcnblocks.com. All rights reserved.",
-  legalLinks: [
-    { name: "Terms and Conditions", href: "#" },
-    { name: "Privacy Policy", href: "#" },
-  ],
-};
+  {
+    title: "About Bazaari",
+    links: [
+      { name: "About Us", href: "/about/company" },
+      { name: "Mission & Vision", href: "/about/mission-vision" },
+      { name: "Success Stories", href: "/about/success-story" },
+      { name: "Blog & Guides", href: "/module/blog" },
+    ],
+  },
+  {
+    title: "Join Bazaari",
+    links: [
+      { name: "Become a Seller", href: "/seller/apply" },
+      { name: "Delivery Man Registration", href: "/register/delivery" },
+      { name: "Create an Account", href: "/register" },
+      { name: "Sign In", href: "/login" },
+    ],
+  },
+];
 
-const Footer7 = (props: Props) => {
-  const {
-    logo,
-    sections,
-    description,
-    socialLinks,
-    copyright,
-    legalLinks,
-    className,
-  } = {
-    ...defaultProps,
-    ...props,
-  };
-
-  return (
-    <footer className={cn("border-t bg-background", className)}>
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col justify-between gap-10 py-12 lg:flex-row lg:items-start lg:text-left">
-          <div className="flex w-full flex-col justify-between gap-6 lg:items-start">
-            <Link href={logo?.url || "/"} className="flex items-center gap-2">
-              <img
-                src={logo?.src}
-                alt={logo?.alt}
-                title={logo?.title}
-                className="h-7 dark:invert"
-              />
-            </Link>
-            <p className="text-sm text-muted-foreground md:max-w-sm">
-              {description}
-            </p>
-            <ul className="flex items-center space-x-5 text-muted-foreground">
-              {socialLinks?.map((social, idx) => (
-                <li key={idx} className="font-medium hover:text-primary">
-                  <a href={social.href} aria-label={social.label}>
-                    {social.icon}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="grid w-full gap-8 sm:grid-cols-2 md:grid-cols-4">
-            {sections?.map((section, sectionIdx) => (
-              <div key={sectionIdx}>
-                <h3 className="mb-4 font-semibold tracking-tight text-sm">
-                  {section.title}
-                </h3>
-                <ul className="space-y-3 text-sm text-muted-foreground">
-                  {section.links.map((link, linkIdx) => (
-                    <li
-                      key={linkIdx}
-                      className="font-medium hover:text-primary"
-                    >
-                      <a href={link.href}>{link.name}</a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
+const Footer7 = ({ className }: { className?: string }) => (
+  <footer
+    className={cn("relative isolate overflow-hidden border-t border-emerald-900/30 text-white", className)}
+    style={{
+      backgroundImage: "url('/Screenshot%202026-10-09%20202732.png')",
+      backgroundPosition: "center 55%",
+      backgroundSize: "cover",
+    }}
+  >
+    <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-br from-slate-950/85 via-emerald-950/80 to-slate-900/85" />
+    <div className="container mx-auto px-4">
+      <div className="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[1.3fr_2fr] lg:gap-16 lg:py-14">
+        <div className="max-w-sm">
+          <Link href="/" className="inline-flex items-center gap-2 text-2xl font-extrabold tracking-tight" aria-label="Bazaari home">
+            <ShoppingCart className="h-8 w-8 text-emerald-300" strokeWidth={2.8} />
+            <span><span className="text-emerald-300">B</span>azaari</span>
+          </Link>
+          <p className="mt-4 text-sm leading-6 text-white/80">
+            Shop together and grow together. Discover products from trusted sellers across the Bazaari marketplace.
+          </p>
+          <Link href="/shoP/products" className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/30 px-4 py-2 text-sm font-semibold text-white transition hover:border-emerald-300 hover:bg-emerald-400/15">
+            Explore the marketplace <ArrowUpRight className="h-4 w-4" />
+          </Link>
         </div>
-        <div className="flex flex-col justify-between gap-4 border-t border-border py-6 text-xs font-medium text-muted-foreground md:flex-row md:items-center md:text-left">
-          <p>{copyright}</p>
-          <ul className="flex flex-col gap-2 md:flex-row">
-            {legalLinks?.map((link, idx) => (
-              <li key={idx} className="hover:text-primary">
-                <a href={link.href}> {link.name}</a>
-              </li>
-            ))}
-          </ul>
+
+        <div className="grid gap-8 sm:grid-cols-3">
+          {footerSections.map((section) => (
+            <nav key={section.title} aria-label={section.title}>
+              <h2 className="mb-4 text-sm font-bold uppercase tracking-[0.14em] text-emerald-200">{section.title}</h2>
+              <ul className="space-y-3">
+                {section.links.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className="text-sm text-white/80 transition hover:text-white hover:underline hover:underline-offset-4">
+                      {link.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
         </div>
       </div>
-    </footer>
-  );
-};
+
+      <div className="flex flex-col gap-2 border-t border-white/20 py-5 text-xs text-white/70 sm:flex-row sm:items-center sm:justify-between">
+        <p>© {new Date().getFullYear()} Bazaari. All rights reserved.</p>
+        <Link href="/" className="hover:text-white">Shop Together · Grow Together</Link>
+      </div>
+    </div>
+  </footer>
+);
 
 export { Footer7 };

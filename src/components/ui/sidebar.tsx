@@ -669,6 +669,7 @@ function AppSidebar() {
   const { data: user, isLoading } = useMe()
 
   const navItems = [
+    { title: "Home", href: "/", icon: Home },
     { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { title: "Products", href: "/shoP/products", icon: Package },
     { title: "My Orders", href: "/dashboard/orders", icon: ListOrdered },

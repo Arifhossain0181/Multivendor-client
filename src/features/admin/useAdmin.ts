@@ -22,6 +22,13 @@ export function useAdminUsers(role?: UserRole, cursor?: string, limit = 10, hasP
   });
 }
 
+export function useAdminSellerApplications(status?: string) {
+  return useQuery({
+    queryKey: ["admin", "seller-applications", status ?? "ALL"],
+    queryFn: () => adminService.getSellerApplications(status),
+  });
+}
+
 export function useUpdateSellerStatus() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -29,6 +36,7 @@ export function useUpdateSellerStatus() {
       adminService.updateSellerStatus(userId, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "seller-applications"] });
       toast.success("Seller status updated");
     },
     onError: () => toast.error("Failed to update seller status"),
@@ -164,7 +172,6 @@ export function useCreateCategory() {
     },
   });
 }
- 
 // -------- category update --------
 export function useUpdateCategory() {
   const queryClient = useQueryClient();
@@ -188,4 +195,3 @@ export function useDeleteCategory() {
     },
   });
 }
- 

@@ -76,7 +76,7 @@ export default function HomePage() {
 
       {/* Trust Badges */}
       <SectionWrapper
-        className="w-full bg-white dark:bg-background transition-colors duration-500"
+        className="w-full bg-background transition-colors duration-500"
         id="trust"
       >
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
@@ -106,7 +106,7 @@ export default function HomePage() {
 
       {/* Categories */}
       <SectionWrapper
-        className="w-full bg-white dark:bg-background transition-colors duration-500"
+        className="w-full bg-background transition-colors duration-500"
         id="categories"
       >
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
@@ -136,7 +136,7 @@ export default function HomePage() {
 
       {/* Admin Features */}
       <SectionWrapper
-        className="w-full bg-white dark:bg-background transition-colors duration-500"
+        className="w-full bg-background transition-colors duration-500"
         id="features"
       >
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
@@ -166,7 +166,7 @@ export default function HomePage() {
 
       {/* Resources */}
       <SectionWrapper
-        className="w-full bg-white dark:bg-background transition-colors duration-500"
+        className="w-full bg-background transition-colors duration-500"
         id="resources"
       >
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
@@ -200,14 +200,14 @@ export default function HomePage() {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="rounded-xl bg-white px-8 py-3.5 text-base font-semibold text-primary shadow-xl transition hover:bg-gray-100"
+                  className="rounded-xl bg-primary-foreground px-8 py-3.5 text-base font-semibold text-primary shadow-xl transition hover:bg-primary-foreground/90"
                 >
                   Get Started Free
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="rounded-xl border-2 border-white/30 px-8 py-3.5 text-base font-semibold text-white transition hover:bg-white/10"
+                  className="rounded-xl border-2 border-primary-foreground/30 px-8 py-3.5 text-base font-semibold text-primary-foreground transition hover:bg-primary-foreground/10"
                 >
                   Contact Sales
                 </motion.button>

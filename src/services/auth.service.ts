@@ -71,7 +71,7 @@ export  const authService ={
         const {data} = await api.post<AuthResponse>("/auth/login",payload);
         return (data.user ?? data.data?.user) as User;
     },
-    register: async (payload: RegisterInput): Promise<User> => {
+    register: async (payload: Omit<RegisterInput, "confirmPassword">): Promise<User> => {
     const { data } = await api.post<AuthResponse>("/auth/register", payload);
     return (data.data?.user ?? data.user) as User;
   },

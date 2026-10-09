@@ -1,11 +1,9 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { useMe } from "@/src/features/auth/loginsstanstack/useMe";
 import { useAdminStats } from "@/src/features/admin/useAdmin";
 import Link from "next/link";
 import {
-  LayoutDashboard,
   Users,
   Package,
   FolderOpen,
@@ -13,12 +11,23 @@ import {
   Truck,
   UserCog,
   MessageSquare,
-  TrendingUp,
   DollarSign,
   ShoppingBag,
-  AlertCircle,
+  BarChart3,
+  PieChart as PieChartIcon,
 } from "lucide-react";
-import { cn } from "@/src/libs/utils";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 const quickLinks = [
   { href: "/dashboard/admin/users", label: "Users & Sellers", icon: Users },
@@ -80,6 +89,19 @@ export default function AdminDashboardPage() {
     },
   ];
 
+  const activityData = [
+    { name: "Users", total: stats?.totalUsers ?? 0 },
+    { name: "Sellers", total: stats?.totalSellers ?? 0 },
+    { name: "Pending sellers", total: stats?.pendingSellers ?? 0 },
+    { name: "Products", total: stats?.totalProducts ?? 0 },
+    { name: "Orders", total: stats?.totalOrders ?? 0 },
+  ];
+  const sellerShare = Math.min(stats?.totalSellers ?? 0, stats?.totalUsers ?? 0);
+  const userComposition = [
+    { name: "Sellers", value: sellerShare, color: "#10b981" },
+    { name: "Other users", value: Math.max((stats?.totalUsers ?? 0) - sellerShare, 0), color: "#06b6d4" },
+  ].filter((segment) => segment.value > 0);
+
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
@@ -107,6 +129,64 @@ export default function AdminDashboardPage() {
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{card.note}</p>
           </div>
         ))}
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
+        <section className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6">
+          <div className="mb-5 flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50">Marketplace overview</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Current platform totals</p>
+            </div>
+          </div>
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={activityData} margin={{ top: 8, right: 8, left: -18, bottom: 4 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-gray-200 dark:text-gray-700" />
+                <XAxis dataKey="name" tick={{ fill: "#9ca3af", fontSize: 12 }} axisLine={false} tickLine={false} />
+                <YAxis allowDecimals={false} tick={{ fill: "#9ca3af", fontSize: 12 }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  cursor={{ fill: "rgba(16,185,129,0.08)" }}
+                  contentStyle={{ backgroundColor: "var(--background, #fff)", border: "1px solid #9ca3af", borderRadius: 12, color: "var(--foreground, #111827)" }}
+                />
+                <Bar dataKey="total" name="Total" fill="#10b981" radius={[6, 6, 0, 0]} maxBarSize={56} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </section>
+
+        <section className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6">
+          <div className="mb-2 flex items-center gap-2">
+            <PieChartIcon className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50">User composition</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Seller accounts within all users</p>
+            </div>
+          </div>
+          <div className="h-64 w-full">
+            {userComposition.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={userComposition} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={58} outerRadius={88} paddingAngle={3}>
+                    {userComposition.map((segment) => <Cell key={segment.name} fill={segment.color} stroke="transparent" />)}
+                  </Pie>
+                  <Tooltip contentStyle={{ backgroundColor: "var(--background, #fff)", border: "1px solid #9ca3af", borderRadius: 12, color: "var(--foreground, #111827)" }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex h-full items-center justify-center text-sm text-gray-500 dark:text-gray-400">No user data available yet.</div>
+            )}
+          </div>
+          <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-gray-600 dark:text-gray-300">
+            {userComposition.map((segment) => (
+              <span key={segment.name} className="inline-flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: segment.color }} />
+                {segment.name}: {segment.value.toLocaleString()}
+              </span>
+            ))}
+          </div>
+        </section>
       </div>
 
       <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">

@@ -13,6 +13,7 @@ import { authService } from "../../../services/auth.service";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { Button } from "../../../components/ui/button";
+import { ShoppingCart } from "lucide-react";
 
 const loginSchema = z.object({
   email: z
@@ -50,7 +51,7 @@ export default function LoginPage() {
       if (user.role === "ADMIN") router.push("/dashboard/admin");
       else if (user.role === "SELLER") router.push("/seller");
       else if (user.role === "DELIVERY") router.push("/delivery");
-      else router.push("/shoP/products");
+      else router.push("/");
     },
 
     onError: (error: any) => {
@@ -65,60 +66,72 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        noValidate
-        className="flex w-full max-w-sm flex-col gap-4"
-      >
-        <div>
-          <h1 className="text-2xl font-semibold">Sign in</h1>
-          <p className="text-sm text-gray-500">Sign in to your account</p>
-        </div>
+    <div className="min-h-screen bg-white text-slate-900 lg:grid lg:grid-cols-2">
+      <aside className="relative min-h-[260px] overflow-hidden bg-[#f6f4ed] sm:min-h-[340px] lg:min-h-screen">
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-cover bg-left"
+          style={{
+            backgroundImage:
+              "url('/Bazaari%20Marketplace%20Shopping%20Experience%20%281%29.png')",
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-white/15 via-transparent to-white/5 lg:bg-gradient-to-r lg:from-transparent lg:to-white/10" />
+      </aside>
 
-        {/* ── Email field ── */}
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="you@example.com"
-            autoComplete="email"
-            aria-invalid={!!errors.email}
-            {...register("email")}
-          />
-          {errors.email && (
-            <p className="text-xs text-red-500">{errors.email.message}</p>
-          )}
-        </div>
+      <main className="flex min-h-[calc(100vh-260px)] items-center justify-center px-5 py-10 sm:min-h-[calc(100vh-340px)] sm:px-8 lg:min-h-screen lg:px-12">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          noValidate
+          className="flex w-full max-w-md flex-col gap-5"
+        >
+          <div className="mb-1 text-center">
+            <div className="mb-5 flex items-center justify-center gap-2 text-3xl font-extrabold tracking-tight text-slate-900">
+              <ShoppingCart className="h-9 w-9 text-emerald-700" strokeWidth={2.8} />
+              <span><span className="text-emerald-700">B</span>azaari</span>
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight">Welcome Back</h1>
+            <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-600">Log in to your account to continue shopping and enjoy a better experience.</p>
+          </div>
 
-        {/* ── Password field ── */}
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="Password"
-            autoComplete="current-password"
-            aria-invalid={!!errors.password}
-            {...register("password")}
-          />
-          {errors.password && (
-            <p className="text-xs text-red-500">{errors.password.message}</p>
-          )}
-        </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="email" className="text-sm font-semibold">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              autoComplete="email"
+              aria-invalid={!!errors.email}
+              className="h-12 rounded-xl border-slate-300 px-4 focus-visible:ring-emerald-700"
+              {...register("email")}
+            />
+            {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+          </div>
 
-        <Button type="submit" disabled={login.isPending}>
-          {login.isPending ? "Signing in..." : "Sign in"}
-        </Button>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="password" className="text-sm font-semibold">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Enter your password"
+              autoComplete="current-password"
+              aria-invalid={!!errors.password}
+              className="h-12 rounded-xl border-slate-300 px-4 focus-visible:ring-emerald-700"
+              {...register("password")}
+            />
+            {errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
+          </div>
 
-        <p className="text-center text-sm text-gray-500">
-          Dont have an account ?{" "}
-          <Link href="/register" className="text-blue-600 hover:underline">
-            create new account
-          </Link>
-        </p>
-      </form>
+          <Button type="submit" disabled={login.isPending} className="h-12 rounded-xl bg-emerald-700 text-base font-semibold text-white hover:bg-emerald-800">
+            {login.isPending ? "Signing in..." : "Log In  →"}
+          </Button>
+
+          <p className="pt-2 text-center text-sm text-slate-600">
+            Don&apos;t have an account?{" "}
+            <Link href="/register" className="font-semibold text-emerald-700 hover:underline">Sign Up</Link>
+          </p>
+        </form>
+      </main>
     </div>
   );
 }

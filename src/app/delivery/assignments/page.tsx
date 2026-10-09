@@ -1,10 +1,12 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { useMe } from "@/src/features/auth/loginsstanstack/useMe";
 import { api } from "@/src/lib/axios";
 import { Skeleton } from "@/src/components/ui/skeleton";
-import { Loader2, Package, MapPin, Phone, Store, User, Mail, Calendar } from "lucide-react";
+import { Package, MapPin, Phone } from "lucide-react";
+import { Button } from "@/src/components/ui/button";
 
 type AssignmentItem = {
   id: string;
@@ -39,6 +41,15 @@ type AssignmentItem = {
     quantity: number;
     unitPrice: number;
   }[];
+};
+
+const ASSIGNMENT_STATUS_LABEL: Record<string, string> = {
+  PENDING: "Pending",
+  CONFIRMED: "Confirmed",
+  SHIPPED: "Shipped",
+  SHIFTED_TO_CUSTOMER: "Shifted to Customer",
+  DELIVERED: "Delivered",
+  CANCELLED: "Cancelled",
 };
 
 function AssignmentCardSkeleton() {
@@ -92,6 +103,7 @@ function AssignmentCardSkeleton() {
 
 export default function DeliveryAssignmentsPage() {
   const { data: user, isLoading: userLoading } = useMe();
+  const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
     queryKey: ["delivery", "assignments"],
@@ -100,6 +112,18 @@ export default function DeliveryAssignmentsPage() {
       return data.data;
     },
     enabled: !!user && user.role === "DELIVERY",
+  });
+
+  const shiftToCustomer = useMutation({
+    mutationFn: async (subOrderId: string) => {
+      const { data } = await api.patch(`/delivery/my-assignments/${subOrderId}/status`);
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Package marked as shifted to customer");
+      queryClient.invalidateQueries({ queryKey: ["delivery", "assignments"] });
+    },
+    onError: (error: any) => toast.error(error?.message || "Could not update package status"),
   });
 
   const assignments = data ?? [];
@@ -154,10 +178,10 @@ export default function DeliveryAssignmentsPage() {
                 <div className="flex items-center gap-3 text-xs">
                   <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                     <Package size={13} />
-                    {assignment.masterOrder.status}
+                    Payment: {assignment.masterOrder.status === "PAID" ? "Paid" : assignment.masterOrder.status === "COMPLETED" ? "Completed" : assignment.masterOrder.status}
                   </span>
                   <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                    {assignment.status}
+                    Package: {ASSIGNMENT_STATUS_LABEL[assignment.status] || assignment.status}
                   </span>
                 </div>
               </div>
@@ -225,6 +249,17 @@ export default function DeliveryAssignmentsPage() {
                   ))}
                 </div>
               </div>
+
+              {assignment.status === "SHIPPED" && (
+                <div className="mt-5 flex justify-end border-t border-gray-100 pt-4 dark:border-gray-800">
+                  <Button
+                    onClick={() => shiftToCustomer.mutate(assignment.id)}
+                    disabled={shiftToCustomer.isPending}
+                  >
+                    {shiftToCustomer.isPending ? "Updating..." : "Mark as Shifted to Customer"}
+                  </Button>
+                </div>
+              )}
             </div>
           ))}
         </div>

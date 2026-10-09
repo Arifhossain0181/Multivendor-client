@@ -108,11 +108,11 @@ const Navbar5 = ({ className }: Navbar5Props) => {
         <nav className="flex h-16 items-center justify-between lg:h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md shadow-primary/20 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-primary/30 group-hover:scale-105">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-700 text-white shadow-md shadow-emerald-700/20 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-emerald-700/30 group-hover:scale-105">
               <Store className="h-5 w-5" />
             </div>
             <span className="text-2xl font-bold tracking-tight text-foreground">
-              Bazaari
+              <span className="text-emerald-700 dark:text-emerald-400">B</span>azaari
             </span>
           </Link>
 
@@ -198,7 +198,7 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                           ? "/seller"
                           : user.role === "DELIVERY"
                             ? "/delivery"
-                            : "/orders"
+                            : "/dashboard"
                     }
                       className={cn(
                       navigationMenuTriggerStyle(),
@@ -208,7 +208,7 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                     {user.role === "ADMIN" && "Admin Panel"}
                     {user.role === "SELLER" && "Seller Dashboard"}
                     {user.role === "DELIVERY" && "Delivery Dashboard"}
-                    {user.role === "USER" && "My Orders"}
+                    {user.role === "USER" && "Customer Dashboard"}
                   </NavigationMenuLink>
                 </NavigationMenuItem>
               )}
@@ -244,10 +244,10 @@ const Navbar5 = ({ className }: Navbar5Props) => {
               </div>
             ) : (
               <>
-                <Button asChild variant="ghost" className="hover:bg-primary/5 hover:text-primary">
+                <Button asChild variant="ghost" className="text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 dark:text-emerald-300 dark:hover:bg-emerald-950/50">
                   <Link href="/login">Sign in</Link>
                 </Button>
-                <Button asChild className="shadow-sm hover:shadow-md transition-all">
+                <Button asChild className="bg-emerald-700 text-white shadow-sm transition-all hover:bg-emerald-800 hover:shadow-md dark:bg-emerald-600 dark:hover:bg-emerald-500">
                   <Link href="/register">Start for free</Link>
                 </Button>
               </>
@@ -282,11 +282,11 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                 <SheetHeader>
                   <SheetTitle>
                     <Link href="/" className="flex items-center gap-2.5">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md shadow-primary/20">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-700 text-white shadow-md shadow-emerald-700/20">
                         <Store className="h-5 w-5" />
                       </div>
-                      <span className="text-xl font-bold tracking-tight">
-                        Bazaari
+                      <span className="text-xl font-bold tracking-tight text-foreground">
+                        <span className="text-emerald-700 dark:text-emerald-400">B</span>azaari
                       </span>
                     </Link>
                   </SheetTitle>
@@ -328,14 +328,14 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                               ? "/seller"
                               : user.role === "DELIVERY"
                                 ? "/delivery"
-                                : "/orders"
+                                : "/dashboard"
                         }
                         className="font-semibold text-primary py-2.5 px-3 rounded-lg hover:bg-primary/5 transition-colors"
                       >
                         {user.role === "ADMIN" && "Admin Panel "}
                         {user.role === "SELLER" && "Seller Dashboard "}
                         {user.role === "DELIVERY" && "Delivery Dashboard "}
-                        {user.role === "USER" && "My Orders "}
+                        {user.role === "USER" && "Customer Dashboard "}
                       </Link>
                     )}
                   </div>
@@ -357,10 +357,10 @@ const Navbar5 = ({ className }: Navbar5Props) => {
                       </>
                     ) : (
                       <>
-                        <Button asChild variant="outline" className="hover:bg-primary/5 hover:text-primary hover:border-primary/20">
+                        <Button asChild variant="outline" className="border-emerald-700 text-emerald-700 hover:border-emerald-800 hover:bg-emerald-50 hover:text-emerald-800 dark:border-emerald-400 dark:text-emerald-300 dark:hover:bg-emerald-950/50">
                           <Link href="/login">Sign in</Link>
                         </Button>
-                        <Button asChild className="shadow-sm hover:shadow-md transition-all">
+                        <Button asChild className="bg-emerald-700 text-white shadow-sm transition-all hover:bg-emerald-800 hover:shadow-md dark:bg-emerald-600 dark:hover:bg-emerald-500">
                           <Link href="/register">Start for free</Link>
                         </Button>
                       </>

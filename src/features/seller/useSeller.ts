@@ -7,6 +7,7 @@ export function useFulfillments(cursor?: string, limit = 10) {
     queryKey: ["seller", "fulfillments", cursor ?? "null", limit],
     queryFn: () => sellerService.getFulfillments(cursor, limit),
     staleTime: 1000 * 30,
+    refetchInterval: 5000,
   });
 }
 

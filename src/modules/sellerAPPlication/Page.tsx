@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { useEffect } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -10,16 +10,18 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
-  Store,
-  FileText,
-  ShieldCheck,
   ArrowRight,
   CheckCircle2,
-  Loader2,
-  Sparkles,
-  Users,
-  TrendingUp,
+  FileText,
   Globe,
+  Laptop,
+  Loader2,
+  Package,
+  ShieldCheck,
+  ShoppingCart,
+  Store,
+  TrendingUp,
+  Users,
 } from "lucide-react";
 
 import { api } from "../../lib/axios";
@@ -40,16 +42,55 @@ const sellerApplicationSchema = z.object({
     .string()
     .min(20, "Write at least 20 characters about your store")
     .max(1000, "Description must be under 1000 characters"),
-  agreeTerms: z
-    .boolean()
-    .refine((val) => val === true, "You must agree to the terms and conditions"),
+  agreeTerms: z.boolean().refine((value) => value, "You must agree to the seller terms"),
 });
 
 type SellerApplicationInput = z.infer<typeof sellerApplicationSchema>;
 
+const benefits = [
+  {
+    icon: TrendingUp,
+    title: "Grow Your Business",
+    description: "Reach more customers and scale your sales with our marketplace tools.",
+  },
+  {
+    icon: Globe,
+    title: "Nationwide Reach",
+    description: "Sell to customers across the country with our logistics network.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Secure Payments",
+    description: "Get paid with a secure payment system and transparent fees.",
+  },
+  {
+    icon: Users,
+    title: "Seller Support",
+    description: "Get seller support, analytics, and tools to grow your store.",
+  },
+];
+
+const steps = [
+  {
+    number: "01",
+    title: "Apply Online",
+    description: "Share your store details and tell us about your business.",
+  },
+  {
+    number: "02",
+    title: "Get Approved",
+    description: "Our team reviews your application, usually within 2–3 business days.",
+  },
+  {
+    number: "03",
+    title: "Start Selling",
+    description: "Set up your store, add products, and start selling to customers.",
+  },
+];
+
 function FormSkeleton() {
   return (
-    <div className="mx-auto w-full max-w-2xl">
+    <div className="mx-auto w-full max-w-2xl px-4 py-12">
       <div className="rounded-3xl border border-border bg-card p-8 shadow-xl">
         <div className="mb-8 flex items-center gap-3">
           <Skeleton className="h-12 w-12 rounded-2xl" />
@@ -59,18 +100,8 @@ function FormSkeleton() {
           </div>
         </div>
         <div className="space-y-6">
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-11 w-full rounded-xl" />
-          </div>
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-32 w-full rounded-xl" />
-          </div>
-          <div className="flex items-start gap-3">
-            <Skeleton className="h-5 w-5 rounded" />
-            <Skeleton className="h-4 w-64" />
-          </div>
+          <Skeleton className="h-11 w-full rounded-xl" />
+          <Skeleton className="h-32 w-full rounded-xl" />
           <Skeleton className="h-12 w-full rounded-xl" />
         </div>
       </div>
@@ -81,7 +112,6 @@ function FormSkeleton() {
 export default function ApplySellerPage() {
   const router = useRouter();
   const { data: user, isLoading: userLoading, isError } = useMe();
-  const [charCount, setCharCount] = useState(0);
 
   const {
     register,
@@ -92,14 +122,11 @@ export default function ApplySellerPage() {
   } = useForm<SellerApplicationInput>({
     resolver: zodResolver(sellerApplicationSchema),
     mode: "onBlur",
+    defaultValues: { agreeTerms: false },
   });
 
   const descriptionValue = watch("description", "");
   const storeNameValue = watch("storeName", "");
-
-  useEffect(() => {
-    setCharCount(descriptionValue.length);
-  }, [descriptionValue]);
 
   const applySeller = useMutation({
     mutationFn: async (payload: SellerApplicationInput) => {
@@ -108,12 +135,12 @@ export default function ApplySellerPage() {
       return response;
     },
     onSuccess: () => {
-      toast.success("Application submitted successfully! We'll review it within 2-3 business days.");
-      reset();
+      toast.success("Application submitted successfully! We’ll review it within 2–3 business days.");
+      reset({ agreeTerms: false });
     },
     onError: (error: any) => {
       const message = error?.message || "Could not submit application. Please try again.";
-      if (message.toLowerCase().includes("already exists") || message.toLowerCase().includes("already")) {
+      if (message.toLowerCase().includes("already")) {
         toast.error("You have already submitted a seller application.");
       } else {
         toast.error(message);
@@ -121,467 +148,213 @@ export default function ApplySellerPage() {
     },
   });
 
-  const onSubmit = (values: SellerApplicationInput) => {
-    applySeller.mutate(values);
-  };
-
   useEffect(() => {
     if (!userLoading && !user && !isError) {
       router.push("/login?redirect=/seller/apply");
     }
   }, [user, userLoading, isError, router]);
 
-  if (userLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
-        <FormSkeleton />
-      </div>
-    );
-  }
+  if (userLoading) return <FormSkeleton />;
+  if (!user) return null;
 
-  if (!user) {
-    return null;
-  }
-
-  const benefits = [
-    {
-      icon: TrendingUp,
-      title: "Grow Your Business",
-      description: "Reach millions of customers and scale your sales with our powerful marketplace tools.",
-    },
-    {
-      icon: Globe,
-      title: "Global Reach",
-      description: "Sell to customers across the country with our nationwide logistics network.",
-    },
-    {
-      icon: ShieldCheck,
-      title: "Secure Payments",
-      description: "Get paid on time with our secure, automated payment system and transparent fee structure.",
-    },
-    {
-      icon: Users,
-      title: "Dedicated Support",
-      description: "Access priority seller support, analytics dashboard, and marketing tools.",
-    },
-  ];
+  const onSubmit = (values: SellerApplicationInput) => applySeller.mutate(values);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary/95 to-primary/90 dark:from-primary dark:via-primary/90 dark:to-primary/80">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-white/5 blur-3xl" />
-          <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
-          <div className="absolute right-1/4 top-1/3 h-32 w-32 rounded-full bg-white/5 blur-2xl" />
-        </div>
-        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="mx-auto max-w-3xl text-center"
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1, duration: 0.5 }}
-              className="mx-auto mb-6 grid h-16 w-16 place-items-center rounded-2xl bg-white/10 backdrop-blur-sm"
-            >
-              <Store className="h-8 w-8 text-white" />
-            </motion.div>
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-xs font-semibold tracking-[0.2em] text-white/70"
-            >
-              BECOME A SELLER
-            </motion.p>
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="mt-4 text-3xl font-bold text-white sm:text-4xl lg:text-5xl"
-            >
-              Start Selling on Bazaari Today
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="mt-4 text-base text-white/80 sm:text-lg"
-            >
-              Join thousands of successful sellers. Create your store in minutes and start reaching customers nationwide.
-            </motion.p>
-          </motion.div>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent" />
-      </section>
-
-      {/* Benefits Section */}
-      <section className="bg-background py-16 sm:py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mx-auto max-w-2xl text-center"
-          >
-            <h2 className="text-2xl font-bold text-foreground sm:text-3xl">
-              Why Sell on Bazaari?
-            </h2>
-            <p className="mt-3 text-muted-foreground">
-              We provide everything you need to build and grow your online business.
+    <div className="min-h-screen overflow-hidden bg-white text-[#073b2d] dark:bg-slate-950 dark:text-emerald-50">
+      {/* HERO */}
+      <section className="relative isolate overflow-hidden bg-gradient-to-br from-[#f0fcf5] via-white to-[#e4f8eb] dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950">
+        <div aria-hidden="true" className="pointer-events-none absolute -left-24 -top-32 h-64 w-64 rounded-full bg-emerald-100/70 blur-2xl dark:bg-emerald-500/10" />
+        <div aria-hidden="true" className="pointer-events-none absolute -right-20 top-8 h-72 w-72 rounded-full bg-green-100/70 blur-3xl dark:bg-green-400/10" />
+        <div className="relative mx-auto grid max-w-[1440px] items-center gap-8 px-5 py-12 sm:px-8 md:py-16 lg:grid-cols-[1fr_1.1fr] lg:gap-10 lg:px-16 lg:py-20">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="relative z-10">
+            <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-100 px-4 py-1.5 text-xs font-extrabold uppercase tracking-wide text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-200">
+              Become a Seller
+            </span>
+            <h1 className="mt-5 max-w-xl text-4xl font-black leading-[1.12] tracking-tight text-[#082f25] dark:text-white sm:text-5xl lg:text-6xl">
+              Start Selling on <span className="text-emerald-600">Bazaari</span> Today
+            </h1>
+            <p className="mt-6 max-w-lg text-base leading-7 text-slate-700 sm:text-lg">
+              <span className="text-slate-700 dark:text-slate-300">Join successful sellers. Create your store and start reaching customers across the country.</span>
             </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <a href="#seller-application" className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3.5 font-bold text-white shadow-lg shadow-emerald-600/20 transition hover:-translate-y-0.5 hover:bg-emerald-700">
+                Start Selling <ArrowRight size={19} />
+              </a>
+              <a href="#how-it-works" className="inline-flex items-center rounded-xl border border-emerald-200 bg-white px-6 py-3.5 font-bold text-emerald-800 transition hover:bg-emerald-50 dark:border-emerald-700 dark:bg-slate-900 dark:text-emerald-200 dark:hover:bg-slate-800">
+                Learn More
+              </a>
+            </div>
+            <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm text-slate-600">
+              <span className="flex items-center gap-2"><CheckCircle2 size={17} className="text-emerald-600" /> Easy registration</span>
+              <span className="flex items-center gap-2"><CheckCircle2 size={17} className="text-emerald-600" /> Seller support</span>
+            </div>
           </motion.div>
-          <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {benefits.map((benefit, i) => (
-              <motion.div
-                key={benefit.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
-                className="group rounded-2xl border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md hover:shadow-primary/5"
-              >
-                <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                  <benefit.icon className="h-5 w-5" />
-                </div>
-                <h3 className="text-base font-semibold text-foreground">{benefit.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  {benefit.description}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* Application Form Section */}
-      <section className="bg-muted/30 py-16 sm:py-24 dark:bg-muted/10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mx-auto max-w-2xl"
-          >
-            <div className="rounded-3xl border border-border bg-card p-8 shadow-xl sm:p-10">
-              <div className="mb-8 flex items-center gap-4">
-                <motion.div
-                  whileHover={{ scale: 1.05, rotate: 3 }}
-                  className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-rose-500 to-fuchsia-500 text-white shadow-lg shadow-rose-500/20"
-                >
-                  <Sparkles className="h-6 w-6" />
-                </motion.div>
-                <div>
-                  <h2 className="text-xl font-bold text-foreground sm:text-2xl">
-                    Seller Application
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Fill out the form below to start your journey
-                  </p>
+          {/* Marketplace storefront illustration */}
+          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.55 }} className="relative mx-auto w-full max-w-[590px]">
+            <div aria-hidden="true" className="absolute inset-8 rounded-full bg-emerald-200/50 blur-3xl" />
+            <div className="relative rounded-[36px] border border-white/80 bg-white/55 p-4 shadow-sm backdrop-blur-sm dark:border-slate-700/80 dark:bg-slate-900/65 sm:p-8">
+              <div className="absolute right-4 top-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-100 bg-white text-emerald-700 shadow-lg dark:border-slate-600 dark:bg-slate-800 dark:text-emerald-300 sm:right-8 sm:top-8"><Package size={29} /></div>
+              <div className="absolute left-5 top-20 flex h-12 w-12 items-center justify-center rounded-full bg-white text-emerald-700 shadow-lg dark:bg-slate-800 dark:text-emerald-300 sm:left-8"><Globe size={25} /></div>
+              <div className="mx-auto mt-10 max-w-[390px]">
+                <div className="relative mx-auto flex h-24 items-center justify-center rounded-t-[28px] border-b-[9px] border-emerald-900 bg-emerald-700 sm:h-28">
+                  <div className="absolute -top-7 flex h-14 w-24 items-center justify-center rounded-2xl bg-emerald-700 text-white shadow-md"><ShoppingCart size={37} strokeWidth={2.5} /></div>
+                  <span className="mt-7 text-lg font-black tracking-widest text-white">YOUR STORE</span>
+                </div>
+                <div className="flex h-6 overflow-hidden">
+                  {Array.from({ length: 7 }).map((_, i) => <div key={i} className={`flex-1 ${i % 2 === 0 ? "bg-emerald-700" : "bg-[#f8f1e5]"}`} />)}
+                </div>
+                <div className="relative mx-auto h-44 rounded-b-xl border-x-[10px] border-b-[10px] border-[#c5a982] bg-[#f6e4c7] sm:h-52">
+                  <div className="absolute inset-x-6 bottom-0 top-6 grid grid-cols-2 gap-3">
+                    <div className="rounded-t-lg border-[7px] border-emerald-800 bg-white"><div className="flex h-full items-center justify-center"><ShoppingCart className="text-emerald-600" size={33} /></div></div>
+                    <div className="rounded-t-lg border-[7px] border-emerald-800 bg-white"><div className="flex h-full items-center justify-center"><Store className="text-emerald-600" size={33} /></div></div>
+                  </div>
                 </div>
               </div>
-
-              <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
-                {/* Store Name */}
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.1 }}
-                  className="space-y-2"
-                >
-                  <Label htmlFor="storeName" className="text-sm font-medium text-foreground">
-                    Store Name <span className="text-destructive">*</span>
-                  </Label>
-                  <div className="relative">
-                    <Store className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="storeName"
-                      placeholder="e.g. TechHub Electronics"
-                      aria-invalid={!!errors.storeName}
-                      className={`pl-10 transition-all ${
-                        errors.storeName && touchedFields.storeName
-                          ? "border-destructive focus-visible:ring-destructive/50"
-                          : storeNameValue && !errors.storeName
-                            ? "border-emerald-500 focus-visible:ring-emerald-500/50"
-                            : ""
-                      }`}
-                      {...register("storeName")}
-                    />
-                  </div>
-                  <AnimatePresence>
-                    {errors.storeName && (
-                      <motion.p
-                        initial={{ opacity: 0, y: -5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -5 }}
-                        className="flex items-center gap-1.5 text-xs text-destructive"
-                      >
-                        <span className="h-1 w-1 rounded-full bg-destructive" />
-                        {errors.storeName.message}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                  <p className="text-xs text-muted-foreground">
-                    This will be your public store name visible to customers.
-                  </p>
-                </motion.div>
-
-                {/* Description */}
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.2 }}
-                  className="space-y-2"
-                >
-                  <Label htmlFor="description" className="text-sm font-medium text-foreground">
-                    Store Description <span className="text-destructive">*</span>
-                  </Label>
-                  <div className="relative">
-                    <FileText className="absolute left-3.5 top-3 h-4 w-4 text-muted-foreground" />
-                    <Textarea
-                      id="description"
-                      rows={5}
-                      placeholder="Tell us about your business, what products you plan to sell, and why customers should choose your store..."
-                      aria-invalid={!!errors.description}
-                      className={`pl-10 transition-all resize-none ${
-                        errors.description && touchedFields.description
-                          ? "border-destructive focus-visible:ring-destructive/50"
-                          : descriptionValue.length >= 20 && !errors.description
-                            ? "border-emerald-500 focus-visible:ring-emerald-500/50"
-                            : ""
-                      }`}
-                      {...register("description")}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <AnimatePresence>
-                      {errors.description && (
-                        <motion.p
-                          initial={{ opacity: 0, y: -5 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -5 }}
-                          className="flex items-center gap-1.5 text-xs text-destructive"
-                        >
-                          <span className="h-1 w-1 rounded-full bg-destructive" />
-                          {errors.description.message}
-                        </motion.p>
-                      )}
-                    </AnimatePresence>
-                    <span className={`ml-auto text-xs ${
-                      charCount < 20
-                        ? "text-muted-foreground"
-                        : charCount > 900
-                          ? "text-amber-500"
-                          : "text-emerald-500"
-                    }`}>
-                      {charCount}/1000
-                    </span>
-                  </div>
-                </motion.div>
-
-                {/* Terms Checkbox */}
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.3 }}
-                  className="rounded-xl border border-border bg-muted/30 p-4 dark:bg-muted/10"
-                >
-                  <label className="flex cursor-pointer items-start gap-3">
-                    <input
-                      type="checkbox"
-                      {...register("agreeTerms")}
-                      className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      I agree to the{" "}
-                      <a href="#" className="font-medium text-primary underline-offset-4 hover:underline">
-                        Terms of Service
-                      </a>{" "}
-                      and{" "}
-                      <a href="#" className="font-medium text-primary underline-offset-4 hover:underline">
-                        Seller Agreement
-                      </a>
-                      . I understand that my application will be reviewed by our team.
-                    </span>
-                  </label>
-                  <AnimatePresence>
-                    {errors.agreeTerms && (
-                      <motion.p
-                        initial={{ opacity: 0, y: -5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -5 }}
-                        className="mt-2 flex items-center gap-1.5 text-xs text-destructive"
-                      >
-                        <span className="h-1 w-1 rounded-full bg-destructive" />
-                        {errors.agreeTerms.message}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-
-                {/* Submit Button */}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.4 }}
-                >
-                  <Button
-                    type="submit"
-                    disabled={applySeller.isPending || !isValid}
-                    className="group w-full rounded-xl py-3 text-base font-semibold shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:shadow-primary/30 disabled:opacity-50"
-                  >
-                    <AnimatePresence mode="wait">
-                      {applySeller.isPending ? (
-                        <motion.span
-                          key="loading"
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.8 }}
-                          className="flex items-center gap-2"
-                        >
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                          Submitting Application...
-                        </motion.span>
-                      ) : (
-                        <motion.span
-                          key="submit"
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.8 }}
-                          className="flex items-center justify-center gap-2"
-                        >
-                          Submit Application
-                          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                        </motion.span>
-                      )}
-                    </AnimatePresence>
-                  </Button>
-                </motion.div>
-
-                {/* Info Text */}
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.5 }}
-                  className="text-center text-xs text-muted-foreground"
-                >
-                  By submitting, you agree to our seller terms. Applications are typically reviewed within 2-3 business days.
-                </motion.p>
-              </form>
+              <div className="relative -mt-5 flex items-end justify-center gap-3 sm:gap-5">
+                <div className="flex h-24 w-24 items-center justify-center rounded-lg border border-amber-200 bg-gradient-to-br from-amber-100 to-amber-300 shadow-md sm:h-28 sm:w-28"><Package size={48} className="text-amber-800" /></div>
+                <div className="flex h-32 w-24 flex-col items-center justify-center rounded-xl bg-emerald-700 text-white shadow-lg sm:h-36 sm:w-28"><ShoppingCart size={37} /><span className="mt-2 text-xs font-bold">BAZAARI</span></div>
+                <div className="flex h-20 w-24 items-center justify-center rounded-lg border border-amber-200 bg-gradient-to-br from-amber-100 to-amber-300 shadow-md sm:h-24 sm:w-28"><Package size={42} className="text-amber-800" /></div>
+              </div>
+              <div className="mx-auto mt-6 flex max-w-xs items-center justify-center gap-3 rounded-2xl border border-emerald-100 bg-white p-3 shadow-lg dark:border-slate-600 dark:bg-slate-800">
+                <div className="rounded-xl bg-emerald-100 p-3 text-emerald-700"><TrendingUp size={26} /></div>
+                <div><p className="font-bold text-slate-900 dark:text-white">Your business, growing</p><p className="text-xs text-slate-500 dark:text-slate-400">Your next chapter starts here</p></div>
+              </div>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section className="bg-background py-16 sm:py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mx-auto max-w-2xl text-center"
-          >
-            <h2 className="text-2xl font-bold text-foreground sm:text-3xl">
-              How It Works
-            </h2>
-            <p className="mt-3 text-muted-foreground">
-              Getting started is simple. Follow these easy steps.
-            </p>
-          </motion.div>
-          <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-3">
-            {[
-              {
-                step: "01",
-                title: "Apply Online",
-                description: "Fill out the seller application form with your store details and business information.",
-              },
-              {
-                step: "02",
-                title: "Get Approved",
-                description: "Our team reviews your application. This usually takes 2-3 business days.",
-              },
-              {
-                step: "03",
-                title: "Start Selling",
-                description: "Once approved, set up your store, add products, and start selling to millions of customers.",
-              },
-            ].map((step, i) => (
-              <motion.div
-                key={step.step}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.15, duration: 0.5 }}
-                className="relative text-center"
-              >
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary">
-                  {step.step}
+      {/* BENEFITS + FUNCTIONAL APPLICATION FORM */}
+      <section className="bg-white px-5 py-12 dark:bg-slate-950 sm:px-8 lg:px-10 lg:py-16">
+        <div className="mx-auto grid max-w-[1360px] gap-6 lg:grid-cols-[1.9fr_0.9fr]">
+          <div className="rounded-[28px] border border-emerald-100 bg-gradient-to-br from-[#effbf4] to-[#e4f8ec] p-6 dark:border-slate-700 dark:from-slate-900 dark:to-slate-800 sm:p-8 lg:p-9">
+            <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">Why Sell on Bazaari?</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300 sm:text-base">We provide what you need to build and grow your online business.</p>
+            <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4 xl:gap-0">
+              {benefits.map((benefit, index) => {
+                const Icon = benefit.icon;
+                return (
+                  <article key={benefit.title} className={`px-1 sm:px-3 xl:px-4 ${index !== 0 ? "xl:border-l xl:border-emerald-200" : ""}`}>
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-800 ring-8 ring-emerald-50 dark:bg-emerald-900/50 dark:text-emerald-300 dark:ring-emerald-950"><Icon size={30} strokeWidth={2.4} /></div>
+                    <h3 className="mt-5 text-base font-extrabold text-slate-900 dark:text-white">{benefit.title}</h3>
+                    <p className="mt-3 text-sm leading-6 text-slate-700 dark:text-slate-300">{benefit.description}</p>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+
+          <div id="seller-application" className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_8px_35px_rgba(5,70,40,0.09)] dark:border-slate-700 dark:bg-slate-900 dark:shadow-black/20 sm:p-7">
+            <div className="mb-6">
+              <span className="mb-3 inline-flex rounded-lg bg-emerald-50 p-2 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"><Store size={24} /></span>
+              <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Seller Application</h2>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Fill out the form below to start your journey.</p>
+            </div>
+
+            <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="storeName" className="text-sm font-semibold">Store Name <span className="text-red-500">*</span></Label>
+                <div className="relative">
+                  <Store className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    id="storeName"
+                    placeholder="Enter your store name"
+                    aria-invalid={!!errors.storeName}
+                    className={`h-12 rounded-xl pl-10 ${errors.storeName && touchedFields.storeName ? "border-red-500 focus-visible:ring-red-500/40" : storeNameValue && !errors.storeName ? "border-emerald-500 focus-visible:ring-emerald-500/40" : "border-slate-300 focus-visible:ring-emerald-500/40"}`}
+                    {...register("storeName")}
+                  />
                 </div>
-                <h3 className="text-lg font-semibold text-foreground">{step.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{step.description}</p>
-                {i < 2 && (
-                  <div className="hidden sm:block absolute left-1/2 top-8 h-px w-full -translate-x-1/2 bg-gradient-to-r from-transparent via-border to-transparent" />
-                )}
-              </motion.div>
-            ))}
+                {errors.storeName && <p className="text-xs text-red-600">{errors.storeName.message}</p>}
+                <p className="text-xs text-slate-500 dark:text-slate-400">This will be your public store name visible to customers.</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-sm font-semibold">Store Description <span className="text-red-500">*</span></Label>
+                <div className="relative">
+                  <FileText className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                  <Textarea
+                    id="description"
+                    rows={5}
+                    maxLength={1000}
+                    placeholder="Tell us about your business, products, and why customers should choose your store..."
+                    aria-invalid={!!errors.description}
+                    className={`resize-none rounded-xl pl-10 ${errors.description && touchedFields.description ? "border-red-500 focus-visible:ring-red-500/40" : descriptionValue.length >= 20 && !errors.description ? "border-emerald-500 focus-visible:ring-emerald-500/40" : "border-slate-300 focus-visible:ring-emerald-500/40"}`}
+                    {...register("description")}
+                  />
+                </div>
+                <div className="flex min-h-5 items-start justify-between gap-3">
+                  {errors.description ? <p className="text-xs text-red-600 dark:text-red-400">{errors.description.message}</p> : <span />}
+                  <span className={`shrink-0 text-xs ${descriptionValue.length < 20 ? "text-slate-500 dark:text-slate-400" : descriptionValue.length > 900 ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+                    {descriptionValue.length}/1000
+                  </span>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-4 dark:border-slate-700 dark:bg-slate-800">
+                <label className="flex cursor-pointer items-start gap-3">
+                  <input type="checkbox" {...register("agreeTerms")} className="mt-1 h-4 w-4 shrink-0 accent-emerald-600" />
+                  <span className="text-sm leading-6 text-slate-600 dark:text-slate-300">
+                    I agree to the <strong className="font-semibold text-emerald-800 dark:text-emerald-300">Terms of Service</strong> and <strong className="font-semibold text-emerald-800 dark:text-emerald-300">Seller Agreement</strong>. I understand that my application will be reviewed by our team.
+                  </span>
+                </label>
+                {errors.agreeTerms && <p className="mt-2 text-xs text-red-600">{errors.agreeTerms.message}</p>}
+              </div>
+
+              <Button
+                type="submit"
+                disabled={applySeller.isPending || !isValid}
+                className="h-12 w-full rounded-xl bg-emerald-700 text-base font-bold text-white shadow-lg shadow-emerald-700/20 transition hover:bg-emerald-800 disabled:opacity-50 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+              >
+                {applySeller.isPending ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Submitting Application...</> : <>Submit Application <ArrowRight className="ml-2 h-4 w-4" /></>}
+              </Button>
+              <p className="text-center text-xs leading-5 text-slate-500 dark:text-slate-400">Applications are typically reviewed within 2–3 business days.</p>
+            </form>
           </div>
         </div>
       </section>
 
-      {/* Success Modal */}
+      {/* HOW IT WORKS */}
+      <section id="how-it-works" className="scroll-mt-20 bg-gradient-to-b from-[#f0faf4] to-[#e6f7ed] px-5 py-14 dark:from-slate-950 dark:to-slate-900 sm:px-8 lg:px-12 lg:py-16">
+        <div className="mx-auto max-w-[1360px]">
+          <h2 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white sm:text-4xl">How It Works</h2>
+          <p className="mt-2 text-slate-600 dark:text-slate-400">Getting started is simple. Follow these easy steps.</p>
+          <div className="mt-10 grid items-start gap-9 md:grid-cols-3 md:gap-7">
+            {steps.map((step, index) => (
+              <article key={step.number} className="relative">
+                <div className="flex items-center gap-4">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-sm font-extrabold text-white shadow-md">{step.number}</span>
+                  <div className="flex h-[76px] w-[76px] items-center justify-center rounded-full border-2 border-emerald-100 bg-white text-emerald-800 shadow-md dark:border-slate-700 dark:bg-slate-800 dark:text-emerald-300">
+                    {index === 0 ? <FileText size={32} /> : index === 1 ? <ShieldCheck size={32} /> : <Store size={32} />}
+                  </div>
+                  {index < 2 && <ArrowRight size={25} className="ml-auto hidden text-emerald-600 md:block" />}
+                </div>
+                <h3 className="mt-5 text-xl font-extrabold text-slate-900 dark:text-white">{step.title}</h3>
+                <p className="mt-2 max-w-sm text-sm leading-6 text-slate-600 dark:text-slate-400">{step.description}</p>
+              </article>
+            ))}
+          </div>
+          <div className="mt-10 flex flex-wrap items-center justify-between gap-5 rounded-2xl border border-emerald-100 bg-white/80 p-5 dark:border-slate-700 dark:bg-slate-900 sm:p-7">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"><Laptop size={32} /></div>
+              <div><h3 className="font-extrabold text-slate-900 dark:text-white">Ready to grow your business?</h3><p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Your online store journey starts with one simple step.</p></div>
+            </div>
+            <a href="#seller-application" className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 font-bold text-white transition hover:bg-emerald-700">Apply Now <ArrowRight size={18} /></a>
+          </div>
+        </div>
+      </section>
+
+      {/* Application success dialog */}
       <AnimatePresence>
         {applySeller.isSuccess && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="w-full max-w-md rounded-3xl border border-border bg-card p-8 text-center shadow-2xl"
-            >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 15 }}
-                className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-emerald-500/10"
-              >
-                <CheckCircle2 className="h-8 w-8 text-emerald-500" />
-              </motion.div>
-              <h3 className="text-xl font-bold text-foreground">Application Submitted!</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Your seller application has been submitted successfully. We&apos;ll review it and notify you via email within 2-3 business days.
-              </p>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+            <motion.div initial={{ opacity: 0, scale: 0.92, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.92, y: 16 }} className="w-full max-w-md rounded-3xl border border-emerald-100 bg-white p-8 text-center shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+              <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-emerald-100 dark:bg-emerald-950"><CheckCircle2 className="h-8 w-8 text-emerald-600 dark:text-emerald-400" /></div>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Application Submitted!</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Your seller application has been submitted successfully. We&apos;ll review it and notify you within 2–3 business days.</p>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-                <Button
-                  onClick={() => router.push("/")}
-                  className="rounded-xl"
-                >
-                  Go to Homepage
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => applySeller.reset()}
-                  className="rounded-xl"
-                >
-                  Submit Another
-                </Button>
+                <Button onClick={() => router.push("/")} className="rounded-xl bg-emerald-700 text-white hover:bg-emerald-800">Go to Homepage</Button>
+                <Button variant="outline" onClick={() => applySeller.reset()} className="rounded-xl border-emerald-700 text-emerald-800 hover:bg-emerald-50 dark:border-emerald-500 dark:text-emerald-300 dark:hover:bg-slate-800">Submit Another</Button>
               </div>
             </motion.div>
           </motion.div>
