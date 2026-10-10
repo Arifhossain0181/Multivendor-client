@@ -33,6 +33,7 @@ export type Product = {
     viewCount?: number;
     reviewCount?: number;
     averageRating?: number;
+    createdAt?: string;
     sizes?: string[];
     colors?: string[];
 };
@@ -42,6 +43,7 @@ export type ProductListResponse = {
     nextCursor: string | null;
     hasMore: boolean;
     total?: number;
+    totalPages?: number;
 };
 
 export type VisualSearchResponse = {

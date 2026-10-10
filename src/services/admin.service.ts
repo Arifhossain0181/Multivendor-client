@@ -98,8 +98,9 @@ export const adminService = {
     cursor?: string,
     limit = 10
   ): Promise<PaginatedResponse<AdminDeliveryMan>> => {
-    const { data } = await api.get("/delivery", { params: { status, cursor, limit } });
-    return data;
+    const { data: response } = await api.get("/delivery", { params: { status, cursor, limit } });
+    // The delivery endpoint wraps the paginated result in a `data` property.
+    return response?.data ?? response;
   },
 
   assignDeliveryMan: async (subOrderId: string, deliveryManId: string) => {

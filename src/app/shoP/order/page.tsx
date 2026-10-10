@@ -9,7 +9,7 @@ export default function OrdersPage() {
   const { data: orders, isLoading, isError } = useQuery({
     queryKey: ['user-orders'],
     queryFn: async () => {
-      const response = await api.get('/orders/my-orders'); 
+      const response = await api.get('/orders'); 
       return response.data;
     },
   });

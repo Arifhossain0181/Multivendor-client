@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 import path from "path";
 
+const apiOrigin = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api")
+  .replace(/\/+$/, "")
+  .replace(/\/api$/i, "");
+
 const nextConfig: NextConfig = {
   turbopack: {
     root: path.join(__dirname),
@@ -17,6 +21,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+   async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${apiOrigin}/api/:path*`,
+      }
+    ]
+  }
 };
 
 export default nextConfig;

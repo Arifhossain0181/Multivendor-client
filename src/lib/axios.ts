@@ -1,7 +1,9 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
+  // Keep browser requests same-origin so auth cookies are not treated as
+  // third-party cookies by browsers that block cross-site cookies.
+  baseURL: "/api",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -53,7 +55,20 @@ api.interceptors.response.use(
     }
 
     // 
-    const message = error.response?.data?.message || error.response?.data?.error || "server error";
+    const responseData = error.response?.data;
+    const validationDetails = Array.isArray(responseData?.details)
+      ? responseData.details
+          .map((detail: { field?: unknown; message?: unknown }) => {
+            const field = typeof detail.field === "string" ? detail.field : "";
+            const detailMessage = typeof detail.message === "string" ? detail.message : "";
+            return [field, detailMessage].filter(Boolean).join(": ");
+          })
+          .filter(Boolean)
+          .join("; ")
+      : "";
+    const message = validationDetails
+      ? `Validation failed: ${validationDetails}`
+      : responseData?.message || responseData?.error || "server error";
     return Promise.reject({ message, status: error.response.status });
   }
 );

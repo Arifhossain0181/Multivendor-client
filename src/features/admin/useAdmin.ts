@@ -176,7 +176,7 @@ export function useCreateCategory() {
 export function useUpdateCategory() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ categoryId, payload }) => updateCategory(categoryId, payload),
+    mutationFn: ({ categoryId, payload }: { categoryId: string; payload: { name?: string; description?: string; imageUrl?: string } }) => updateCategory(categoryId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "categories"] });
       queryClient.invalidateQueries({ queryKey: ["categories"] });

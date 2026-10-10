@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../../lib/axios";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { ShoppingCart, Eye, Star } from "lucide-react";
 
 interface Product {
@@ -25,7 +25,7 @@ interface Category {
   name: string;
 }
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -35,7 +35,7 @@ const containerVariants = {
   },
 };
 
-const cardVariants = {
+const cardVariants: Variants = {
   hidden: { opacity: 0, y: 50 },
   visible: { 
     opacity: 1, 

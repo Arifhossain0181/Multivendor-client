@@ -190,11 +190,11 @@ export default function ReviewSection({ productId, sellerId, averageRating = 0, 
             <Skeleton key={i} className="h-24 w-full rounded-xl" />
           ))}
         </div>
-      ) : data?.reviews?.length === 0 ? (
+      ) : data?.items?.length === 0 ? (
         <p className="text-sm text-gray-500 dark:text-gray-400">No reviews yet. Be the first to review this product!</p>
       ) : (
         <div className="space-y-3">
-          {data?.reviews?.map((review) => (
+          {data?.items?.map((review) => (
             <ReviewCard key={review.id} review={review} />
           ))}
         </div>

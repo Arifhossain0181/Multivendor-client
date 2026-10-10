@@ -4,6 +4,7 @@ import {
   type CreateProductPayload,
   type ProductId,
   type ProductListParams,
+  type ProductListResponse,
   type UpdateProductPayload,
   getProducts,
   getProductById,
@@ -128,7 +129,7 @@ export function useCategories() {
 export function useMyProducts(params?: ProductListParams, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["products", "my-products", params],
-    queryFn: async () => {
+    queryFn: async (): Promise<ProductListResponse> => {
       const { data } = await api.get("/products/my-products", { params });
       return data;
     },

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useInView } from "motion/react";
+import { motion, useInView, type Variants } from "motion/react";
 import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 
 //
@@ -35,7 +35,7 @@ export default function ResourceSection() {
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
 
   //
-  const cardVariants = {
+  const cardVariants: Variants = {
     hidden: { opacity: 0, y: 30 },
     visible: (index: number) => ({
       opacity: 1,
@@ -43,7 +43,7 @@ export default function ResourceSection() {
       transition: {
         duration: 0.6,
         delay: index * 0.15,
-        ease: [0.215, 0.61, 0.355, 1], // Smooth cubic-bezier
+        ease: [0.215, 0.61, 0.355, 1] as const, // Smooth cubic-bezier
       },
     }),
   };

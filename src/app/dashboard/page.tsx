@@ -36,6 +36,7 @@ import { useMe } from "@/src/features/auth/loginsstanstack/useMe";
 import { useMyProducts } from "@/src/features/products/useProducts";
 import { useAdminStats } from "@/src/features/admin/useAdmin";
 import { cartService } from "@/src/services/cart.service";
+import type { Product } from "@/src/services/Product.service";
 
 type DashboardRole = "ADMIN" | "SELLER" | "USER";
 
@@ -93,7 +94,7 @@ export default function DashboardPage() {
     undefined,
     { enabled: role === "ADMIN" || role === "SELLER" }
   );
-  const products = productResponse?.data ?? [];
+  const products: Product[] = productResponse?.items ?? [];
 
   // For admin: fetch platform-wide stats (total products across ALL sellers)
   const { data: adminStats } = useAdminStats();
@@ -108,7 +109,7 @@ export default function DashboardPage() {
   const { data: ordersResponse, isLoading: ordersLoading } = useQuery({
     queryKey: ["dashboard-orders"],
     queryFn: async () => {
-      const { data } = await import("@/src/lib/axios").then((mod) => mod.api.get("/orders/my-orders?page=1&limit=5"));
+      const { data } = await import("@/src/lib/axios").then((mod) => mod.api.get("/orders?page=1&limit=5"));
       return data;
     },
     enabled: role === "USER",

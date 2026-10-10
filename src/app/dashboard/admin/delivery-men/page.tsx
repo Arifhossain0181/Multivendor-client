@@ -265,9 +265,7 @@ export default function AdminDeliveryMenPage() {
   const updateStatus = useUpdateDeliveryManStatus();
   const deleteDeliveryMan = useDeleteDeliveryMan();
 
-  const deliveryMen = (data as any)?.data?.items || (data as any)?.items || [];
-  const total = (data as any)?.data?.total ?? (data as any)?.total ?? 0;
-  const limit = (data as any)?.data?.limit ?? (data as any)?.limit ?? 10;
+  const deliveryMen = data?.items ?? [];
 
   const [rejectModal, setRejectModal] = useState<AdminDeliveryMan | null>(null);
   const [deleteModal, setDeleteModal] = useState<AdminDeliveryMan | null>(null);

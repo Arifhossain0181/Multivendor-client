@@ -35,6 +35,11 @@ export type ReturnRequest = {
       email: string;
     };
   };
+  customer: {
+    id: string;
+    name: string;
+    email: string;
+  };
   dispute?: {
     id: string;
     status: string;
@@ -54,6 +59,13 @@ export type Dispute = {
   returnRequest: ReturnRequest;
 };
 
+type RefundPage<T> = {
+  items: T[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  total?: number;
+};
+
 export type CreateReturnPayload = {
   subOrderId: string;
   reason: string;
@@ -65,12 +77,12 @@ export async function createReturnRequest(payload: CreateReturnPayload) {
   return data;
 }
 
-export async function getMyReturns() {
+export async function getMyReturns(): Promise<ReturnRequest[]> {
   const { data } = await api.get("/refunds/my/returns");
   return data.data;
 }
 
-export async function getSellerReturns() {
+export async function getSellerReturns(): Promise<ReturnRequest[]> {
   const { data } = await api.get("/refunds/seller/returns");
   return data.data;
 }
@@ -100,12 +112,12 @@ export async function resolveDispute(disputeId: string, resolution: string) {
   return data;
 }
 
-export async function getAllReturns(cursor?: string, limit = 10) {
+export async function getAllReturns(cursor?: string, limit = 10): Promise<RefundPage<ReturnRequest>> {
   const { data } = await api.get(`/refunds/admin/returns?cursor=${encodeURIComponent(cursor || "")}&limit=${limit}`);
   return data.data;
 }
 
-export async function getAllDisputes(cursor?: string, limit = 10) {
+export async function getAllDisputes(cursor?: string, limit = 10): Promise<RefundPage<Dispute>> {
   const { data } = await api.get(`/refunds/admin/disputes?cursor=${encodeURIComponent(cursor || "")}&limit=${limit}`);
   return data.data;
 }

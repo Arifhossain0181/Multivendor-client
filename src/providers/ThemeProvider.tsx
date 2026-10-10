@@ -78,7 +78,7 @@ export function ThemeProvider({
     readStoredTheme(storageKey, defaultTheme),
   );
 
-  const systemTheme = useSyncExternalStore(
+  const systemTheme = useSyncExternalStore<ResolvedTheme>(
     subscribeToSystemTheme,
     getSystemTheme,
     () => "light",
